@@ -21,7 +21,7 @@ class DtoMakeCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Create a new validation data transfer object';
+    protected $description = 'Create a new data transfer object';
 
     /**
      * The type of class being generated.
@@ -63,7 +63,7 @@ class DtoMakeCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the rule already exists'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the data transfer object already exists'],
         ];
     }
 }
