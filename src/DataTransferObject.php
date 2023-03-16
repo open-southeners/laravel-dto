@@ -34,7 +34,7 @@ abstract class DataTransferObject
                     if (str_contains($type, 'string') && ! str_contains($value, ',')) {
                         $propertiesArr[$key] = $value;
                     } else {
-                        $propertiesArr[$key] = explode(',', $value);
+                        $propertiesArr[$key] = array_filter(explode(',', $value));
                     }
 
                     continue;
@@ -66,7 +66,7 @@ abstract class DataTransferObject
      * 
      * @param class-string<\Illuminate\Database\Eloquent\Model> $model
      */
-    protected static function getInstanceFromModel($model, mixed $id)
+    protected static function getInstanceFromModel($model, mixed $id): mixed
     {
         return $model::find($id);
     }
@@ -77,16 +77,23 @@ abstract class DataTransferObject
     public function filled(string $property): bool
     {
         $request = app(Request::class);
-
+        $classProperty = Str::camel($property);
+        
         if (! $request->route()) {
-            return property_exists($this, $property) && filled($this->{$property});
+            return property_exists($this, $classProperty)
+            && function_exists('filled')
+            && filled($this->{$classProperty});
         }
-
-        return app(Request::class)->has($property);
+        
+        return $request->has(Str::snake($property))
+            ?: $request->has($property)
+            ?: $request->has($classProperty);
     }
 
     /**
      * Add default data to data transfer object.
+     * 
+     * @codeCoverageIgnore
      */
     public function withDefaults(): void
     {

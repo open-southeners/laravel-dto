@@ -2,6 +2,8 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
+use Illuminate\Http\Request;
+use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
@@ -47,14 +49,36 @@ class DataTransferObjectTest extends TestCase
         $data = CreatePostData::fromArray([
             'title' => 'Hello world',
             'tags' => 'foo,bar,test',
-            'status' => PostStatus::Published->value,
+            'post_status' => PostStatus::Published->value,
             'post_id' => 1,
         ]);
 
-        $this->assertTrue($data->status instanceof PostStatus);
+        $this->assertTrue($data->postStatus instanceof PostStatus);
         $this->assertEquals('Hello world', $data->title);
         $this->assertIsArray($data->tags);
         $this->assertContains('bar', $data->tags);
         $this->assertTrue($data->post->is($post));
+    }
+
+    public function testDataTransferObjectFilledViaRequest()
+    {
+        $mock = Mockery::mock(app(Request::class))->makePartial();
+
+        $mock->shouldReceive('route')->andReturn('example');
+        $mock->shouldReceive('has')->withArgs(['post_status'])->andReturn(true);
+        $mock->shouldReceive('has')->withArgs(['postStatus'])->andReturn(true);
+        $mock->shouldReceive('has')->withArgs(['post'])->andReturn(false);
+
+        app()->bind(Request::class, fn () => $mock);
+
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+        ]);
+
+        $this->assertFalse($data->filled('tags'));
+        $this->assertTrue($data->filled('post_status'));
+        $this->assertFalse($data->filled('post'));
     }
 }
