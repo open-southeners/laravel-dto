@@ -1,9 +1,11 @@
 {
-    "name": "open-southeners/packagist_package_here",
-    "description": "and_description_here",
+    "name": "open-southeners/laravel-dto",
+    "description": "Integrate data transfer objects into Laravel, the easiest way",
     "license": "MIT",
     "keywords": [
-        "open-southeners"
+        "open-southeners",
+        "data",
+        "data-transfer-objects"
     ],
     "authors": [
         {
@@ -13,7 +15,8 @@
         }
     ],
     "require": {
-        "php": "^8.0|^8.1|^8.2"
+        "php": "^8.0|^8.1|^8.2",
+        "illuminate/support": "^9.0|^10.0"
     },
     "require-dev": {
         "nunomaduro/larastan": "^2.0",
@@ -23,12 +26,12 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenSoutheners\\PhpPackage\\": "src"
+            "OpenSoutheners\\LaravelDto\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenSoutheners\\PhpPackage\\Tests\\": "tests"
+            "OpenSoutheners\\LaravelDto\\Tests\\": "tests"
         }
     },
     "config": {
@@ -37,7 +40,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "OpenSoutheners\\PhpPackage\\ServiceProvider"
+                "OpenSoutheners\\LaravelDto\\ServiceProvider"
             ]
         }
     },
