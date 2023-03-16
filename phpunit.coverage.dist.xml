@@ -13,6 +13,10 @@
     <include>
       <directory suffix=".php">src</directory>
     </include>
+    <exclude>
+      <directory>src/Commands</directory>
+      <file>src/ServiceProvider.php</file>
+    </exclude>
     <report>
       <clover outputFile="clover.xml"/>
     </report>
