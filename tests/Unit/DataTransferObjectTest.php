@@ -22,4 +22,16 @@ class DataTransferObjectTest extends TestCase
         $this->assertContains('bar', $data->tags);
         $this->assertNull($data->post);
     }
+
+    public function testDataTransferObjectFilled()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => 'foo,bar,test',
+            'status' => PostStatus::Published->value,
+        ]);
+
+        $this->assertTrue($data->filled('status'));
+        $this->assertFalse($data->filled('post'));
+    }
 }

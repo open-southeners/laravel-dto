@@ -2,10 +2,8 @@
 
 namespace OpenSoutheners\LaravelDto;
 
-use App\Support\Facades\Skore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-// use function OpenSouthener
 
 abstract class DataTransferObject
 {
@@ -78,9 +76,13 @@ abstract class DataTransferObject
      */
     public function filled(string $property): bool
     {
-        return app(Request::class)->has($property)
-            && property_exists($this, $property)
-            && filled($this->{$property});
+        $request = app(Request::class);
+
+        if (! $request->route()) {
+            return property_exists($this, $property) && filled($this->{$property});
+        }
+
+        return app(Request::class)->has($property);
     }
 
     /**
