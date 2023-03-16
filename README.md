@@ -73,11 +73,25 @@ Now at the controller level you may do something like the following:
 public function store(CreatePostFormRequest $request)
 {
     $post = $this->repository->create(
-        CreatePostData::fromArray($request->validated())
+        CreatePostData::fromRequest($request)
     );
 
     // Response here...
 }
+```
+
+Or in case you're outside of a request context (HTTP call) you can use `fromArray`:
+
+```php
+// CreatePostCommand.php
+
+$data = CreatePostData::fromArray([
+    'title' => 'Hello world',
+    'status' => PostStatus::Published->value,
+    'tags' => 'hello,world'
+]);
+
+$data->title; // Hello world
 ```
 
 ### Mapping with defaults
