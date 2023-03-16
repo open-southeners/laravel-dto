@@ -2,7 +2,9 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
@@ -38,6 +40,29 @@ class DataTransferObjectTest extends TestCase
         ]);
     }
 
+    public function testDataTransferObjectFromRequest()
+    {
+        /** @var CreatePostFormRequest */
+        $mock = Mockery::mock(app(CreatePostFormRequest::class))->makePartial();
+
+        $mock->shouldReceive('route')->andReturn('example');
+        $mock->shouldReceive('validated')->andReturn([
+            'title' => 'Hello world',
+            'tags' => 'foo,bar,test',
+            'post_status' => PostStatus::Published->value
+        ]);
+        
+        // Not absolutely the same but does the job...
+        app()->bind(Request::class, fn () => $mock);
+
+        $data = CreatePostData::fromRequest($mock);
+
+        $this->assertTrue($data->postStatus instanceof PostStatus);
+        $this->assertEquals('Hello world', $data->title);
+        $this->assertIsArray($data->tags);
+        $this->assertContains('bar', $data->tags);
+    }
+
     public function testDataTransferObjectFromArrayWithModels()
     {
         $post = Post::create([
@@ -62,6 +87,7 @@ class DataTransferObjectTest extends TestCase
 
     public function testDataTransferObjectFilledViaRequest()
     {
+        /** @var CreatePostFormRequest */
         $mock = Mockery::mock(app(Request::class))->makePartial();
 
         $mock->shouldReceive('route')->andReturn('example');
@@ -80,5 +106,22 @@ class DataTransferObjectTest extends TestCase
         $this->assertFalse($data->filled('tags'));
         $this->assertTrue($data->filled('post_status'));
         $this->assertFalse($data->filled('post'));
+    }
+}
+
+class CreatePostFormRequest extends FormRequest
+{
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'title' => ['string'],
+            'tags' => ['string'],
+            'post_status' => [Rule::enum(PostStatus::class)],
+        ];
     }
 }

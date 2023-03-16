@@ -2,11 +2,24 @@
 
 namespace OpenSoutheners\LaravelDto;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 abstract class DataTransferObject
 {
+    /**
+     * Initialise data transfer object from a request.
+     */
+    public static function fromRequest(Request|FormRequest $request): static
+    {
+        return static::fromArray(
+            $request instanceof FormRequest
+                ? $request->validated()
+                : $request->all()
+        );
+    }
+    
     /**
      * Initialise data transfer object from array.
      */
