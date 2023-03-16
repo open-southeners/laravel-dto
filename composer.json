@@ -4,8 +4,12 @@
     "license": "MIT",
     "keywords": [
         "open-southeners",
+        "laravel",
+        "laravel-package",
         "data",
-        "data-transfer-objects"
+        "data-transfer-objects",
+        "requests",
+        "http"
     ],
     "authors": [
         {
@@ -15,15 +19,17 @@
         }
     ],
     "require": {
-        "php": "^8.1|^8.2",
-        "illuminate/support": "^9.0|^10.0"
+        "php": "^8.1 || ^8.2",
+        "illuminate/http": "^9.0 || ^10.0",
+        "illuminate/support": "^9.0 || ^10.0"
     },
     "require-dev": {
         "nunomaduro/larastan": "^2.0",
+        "orchestra/testbench": "^7.0 || ^8.0",
         "phpstan/phpstan": "^1.0",
-        "phpunit/phpunit": "^9.0|^10.0",
-        "orchestra/testbench": "^7.0|^8.0"
+        "phpunit/phpunit": "^9.0 || ^10.0"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "OpenSoutheners\\LaravelDto\\": "src"
@@ -43,6 +49,5 @@
                 "OpenSoutheners\\LaravelDto\\ServiceProvider"
             ]
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
