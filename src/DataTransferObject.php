@@ -92,15 +92,34 @@ abstract class DataTransferObject
         $request = app(Request::class);
         $classProperty = Str::camel($property);
         
-        if (! $request->route()) {
-            return property_exists($this, $classProperty)
-            && function_exists('filled')
-            && filled($this->{$classProperty});
+        if ($request->route()) {
+            return $request->has(Str::snake($property))
+                ?: $request->has($property)
+                ?: $request->has($classProperty);
         }
         
-        return $request->has(Str::snake($property))
-            ?: $request->has($property)
-            ?: $request->has($classProperty);
+        $reflection = new \ReflectionClass($this);
+
+        $reflectionProperty = $reflection->getProperty($classProperty);
+
+        $defaultValue = $reflectionProperty->getDefaultValue();
+        $propertyValue = $reflectionProperty->getValue($this);
+
+        $reflectionPropertyType = $reflectionProperty->getType();
+
+        if ($reflectionPropertyType === null) {
+            return function_exists('filled') && filled($propertyValue);
+        }
+        
+        if (! $propertyValue && $reflectionPropertyType->allowsNull() && $defaultValue === null) {
+            return false;
+        }
+        
+        if ($reflectionProperty->getValue($this) === $defaultValue) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

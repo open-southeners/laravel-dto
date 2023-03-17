@@ -8,7 +8,7 @@ class CreatePostData extends DataTransferObject
 {
     public function __construct(
         public string $title,
-        public array $tags,
+        public array|null $tags,
         public PostStatus $postStatus,
         public Post|null $post = null,
         public array|string|null $country = null
