@@ -36,17 +36,20 @@ class DataTransferObjectTest extends TestCase
         $this->assertIsString($data->country);
     }
 
-    public function testDataTransferObjectFilled()
+    public function testDataTransferObjectFilledViaClassProperties()
     {
         $data = CreatePostData::fromArray([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
+            'author_email' => 'me@d8vjork.com',
         ]);
 
         $this->assertTrue($data->filled('tags'));
         $this->assertTrue($data->filled('postStatus'));
         $this->assertFalse($data->filled('post'));
+        $this->assertFalse($data->filled('description'));
+        $this->assertFalse($data->filled('author_email'));
     }
 
     public function testDataTransferObjectWithDefaults()

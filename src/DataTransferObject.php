@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDto;
 
+use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -100,8 +101,12 @@ abstract class DataTransferObject
         
         $reflection = new \ReflectionClass($this);
 
-        $reflectionProperty = $reflection->getProperty($classProperty);
-
+        $reflectionProperty = match (true) {
+            $reflection->hasProperty($property) => $reflection->getProperty($property),
+            $reflection->hasProperty($classProperty) => $reflection->getProperty($classProperty),
+            default => throw new Exception("Properties '{$property}' or '{$classProperty}' doesn't exists on class instance."),
+        };
+        
         $defaultValue = $reflectionProperty->getDefaultValue();
         $propertyValue = $reflectionProperty->getValue($this);
 
@@ -111,11 +116,19 @@ abstract class DataTransferObject
             return function_exists('filled') && filled($propertyValue);
         }
         
+        /**
+         * Not filled when DTO property's default value is set to null while none is passed through
+         */
         if (! $propertyValue && $reflectionPropertyType->allowsNull() && $defaultValue === null) {
             return false;
         }
         
-        if ($reflectionProperty->getValue($this) === $defaultValue) {
+        /**
+         * Not filled when property isn't promoted and does have a default value matching value sent
+         * 
+         * @see problem with promoted properties and hasDefaultValue/getDefaultValue https://bugs.php.net/bug.php?id=81386
+         */
+        if (! $reflectionProperty->isPromoted() && $reflectionProperty->hasDefaultValue() && $propertyValue === $defaultValue) {
             return false;
         }
 

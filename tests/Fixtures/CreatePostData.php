@@ -6,14 +6,18 @@ use OpenSoutheners\LaravelDto\DataTransferObject;
 
 class CreatePostData extends DataTransferObject
 {
+    public mixed $authorEmail = 'me@d8vjork.com';
+
     public function __construct(
         public string $title,
         public array|null $tags,
         public PostStatus $postStatus,
         public Post|null $post = null,
-        public array|string|null $country = null
+        public array|string|null $country = null,
+        public $description = '',
+        $authorEmail = null
     ) {
-        // 
+        $this->authorEmail = $authorEmail;
     }
 
     /**
