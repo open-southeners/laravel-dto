@@ -18,6 +18,12 @@
             "homepage": "https://d8vjork.com"
         }
     ],
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/open-southeners"
+        }
+    ],
     "require": {
         "php": "^8.1 || ^8.2",
         "illuminate/http": "^9.0 || ^10.0",
