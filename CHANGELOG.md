@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2023-03-21
+
+### Changed
+
+- `DataTransferObject::fromArray` now uses `initialize` method instead of `withDefaults` (internal change, shouldn't affect anything)
+
 ## [1.3.0] - 2023-03-17
 
 ### Changed
