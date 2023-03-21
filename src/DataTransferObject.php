@@ -20,7 +20,7 @@ abstract class DataTransferObject
                 : $request->all()
         );
     }
-    
+
     /**
      * Initialise data transfer object from array.
      */
@@ -72,12 +72,12 @@ abstract class DataTransferObject
             }
         }
 
-        return tap(new static(...$propertiesArr), fn (self $instance) => $instance->withDefaults());
+        return tap(new static(...$propertiesArr), fn (self $instance) => $instance->initialise());
     }
 
     /**
      * Get instance from model class string and ID or key.
-     * 
+     *
      * @param class-string<\Illuminate\Database\Eloquent\Model> $model
      */
     protected static function getInstanceFromModel($model, mixed $id): mixed
@@ -92,13 +92,13 @@ abstract class DataTransferObject
     {
         $request = app(Request::class);
         $classProperty = Str::camel($property);
-        
+
         if ($request->route()) {
             return $request->has(Str::snake($property))
                 ?: $request->has($property)
                 ?: $request->has($classProperty);
         }
-        
+
         $reflection = new \ReflectionClass($this);
 
         $reflectionProperty = match (true) {
@@ -106,7 +106,7 @@ abstract class DataTransferObject
             $reflection->hasProperty($classProperty) => $reflection->getProperty($classProperty),
             default => throw new Exception("Properties '{$property}' or '{$classProperty}' doesn't exists on class instance."),
         };
-        
+
         $defaultValue = $reflectionProperty->getDefaultValue();
         $propertyValue = $reflectionProperty->getValue($this);
 
@@ -115,17 +115,17 @@ abstract class DataTransferObject
         if ($reflectionPropertyType === null) {
             return function_exists('filled') && filled($propertyValue);
         }
-        
+
         /**
          * Not filled when DTO property's default value is set to null while none is passed through
          */
         if (! $propertyValue && $reflectionPropertyType->allowsNull() && $defaultValue === null) {
             return false;
         }
-        
+
         /**
          * Not filled when property isn't promoted and does have a default value matching value sent
-         * 
+         *
          * @see problem with promoted properties and hasDefaultValue/getDefaultValue https://bugs.php.net/bug.php?id=81386
          */
         if (! $reflectionProperty->isPromoted() && $reflectionProperty->hasDefaultValue() && $propertyValue === $defaultValue) {
@@ -136,8 +136,18 @@ abstract class DataTransferObject
     }
 
     /**
+     * Initialise data transfer object (defaults, etc).
+     */
+    public function initialise()
+    {
+        $this->withDefaults();
+
+        return $this;
+    }
+
+    /**
      * Add default data to data transfer object.
-     * 
+     *
      * @codeCoverageIgnore
      */
     public function withDefaults(): void
