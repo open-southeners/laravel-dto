@@ -33,8 +33,6 @@ abstract class DataTransferObject
 
         $propertiesMapper->run();
 
-        // print_r($propertiesMapper->get());
-
         return tap(new static(...$propertiesMapper->get()), fn (self $instance) => $instance->initialise());
     }
 
