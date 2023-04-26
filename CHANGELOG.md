@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2023-04-26
+
+### Added
+
+- Introducing mapped types using docblock `@param` type like the following: `@param array<\App\Models\MyModel> $models` or `@param \Illuminate\Support\Collection<\App\Models\MyModel> $models`
+- Optional normalisation option for properties names (`workspace_id` to `workspace`, `post_tags` to `postTags`, etc) to package config file (publish using command `php artisan vendor:publish --provider="OpenSoutheners\LaravelDto\ServiceProvider"`)
+- Attribute `OpenSoutheners\LaravelDto\Attributes\NormaliseProperties` to use in some DTO classes that needs properties normalisation (when globally disabled from config)
+- Attribute `OpenSoutheners\LaravelDto\Attributes\BindModelWith` to bind to model with relationships included
+
+### Changed
+
+- Now using `symfony/property-info` for better property assertion (so many bugs and inconsistencies on promoted properties in PHP8+ assertions)
+
 ## [1.3.1] - 2023-03-21
 
 ### Changed
