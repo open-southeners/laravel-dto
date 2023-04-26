@@ -3,12 +3,13 @@
 namespace OpenSoutheners\LaravelDto;
 
 use Exception;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
-abstract class DataTransferObject
+abstract class DataTransferObject implements Arrayable
 {
     use SerializesModels;
 
@@ -104,5 +105,21 @@ abstract class DataTransferObject
     public function withDefaults(): void
     {
         //
+    }
+
+    /**
+     * Get the instance as an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray()
+    {
+        $properties = get_class_vars(get_class($this));
+
+        foreach ($properties as $key => $value) {
+            $properties[$key] = $this->{$key} ?? $value;
+        }
+
+        return $properties;
     }
 }
