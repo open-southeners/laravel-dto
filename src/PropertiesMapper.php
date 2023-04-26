@@ -169,10 +169,9 @@ class PropertiesMapper
                 $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
                 $bindModelWithAttribute = reset($bindModelWithAttribute);
 
-                /** @var \OpenSoutheners\LaravelDto\Attributes\BindModelWith $bindModelWithAttributeInstance */
-                $bindModelWithAttributeInstance = $bindModelWithAttribute->getInstance();
+                $bindModelWith = $bindModelWithAttribute ? (array) $bindModelWithAttribute->newInstance()->relationships : [];
 
-                $collection = $this->getModelInstance($preferredCollectionTypeClass, $collection, $bindModelWithAttributeInstance->relationships);
+                $collection = $this->getModelInstance($preferredCollectionTypeClass, $collection, $bindModelWith);
             } else {
                 $collection = Collection::make($collection)->mapInto($preferredCollectionTypeClass);
             }
