@@ -9,6 +9,7 @@ use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
+use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
 use Orchestra\Testbench\TestCase;
 
 class DataTransferObjectTest extends TestCase
@@ -49,9 +50,9 @@ class DataTransferObjectTest extends TestCase
         $mock->shouldReceive('validated')->andReturn([
             'title' => 'Hello world',
             'tags' => 'foo,bar,test',
-            'post_status' => PostStatus::Published->value
+            'post_status' => PostStatus::Published->value,
         ]);
-        
+
         // Not absolutely the same but does the job...
         app()->bind(Request::class, fn () => $mock);
 
@@ -106,6 +107,32 @@ class DataTransferObjectTest extends TestCase
         $this->assertFalse($data->filled('tags'));
         $this->assertTrue($data->filled('post_status'));
         $this->assertFalse($data->filled('post'));
+    }
+
+    public function testDataTransferObjectWithoutPropertyKeysNormalisationWhenDisabledFromConfig()
+    {
+        config(['data-transfer-objects.normalise_properties' => false]);
+
+        $post = Post::create([
+            'id' => 2,
+            'title' => 'Hello ipsum',
+            'status' => PostStatus::Hidden->value,
+        ]);
+
+        $parentPost = Post::create([
+            'id' => 1,
+            'title' => 'Lorem ipsum',
+            'status' => PostStatus::Hidden->value,
+        ]);
+
+        $data = UpdatePostData::fromArray([
+            'post_id' => 2,
+            'parent' => 1,
+            'tags' => 'test,hello',
+        ]);
+
+        $this->assertTrue($data->post_id?->is($post));
+        $this->assertTrue($data->parent?->is($parentPost));
     }
 }
 

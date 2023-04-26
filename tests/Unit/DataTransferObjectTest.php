@@ -2,12 +2,26 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Unit;
 
+use Illuminate\Config\Repository;
+use Illuminate\Container\Container;
+use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use PHPUnit\Framework\TestCase;
 
 class DataTransferObjectTest extends TestCase
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        $mockedConfig = Mockery::mock(Repository::class);
+
+        $mockedConfig->shouldReceive('get')->andReturn(true);
+
+        Container::getInstance()->bind('config', fn () => $mockedConfig);
+    }
+
     public function testDataTransferObjectFromArray()
     {
         $data = CreatePostData::fromArray([

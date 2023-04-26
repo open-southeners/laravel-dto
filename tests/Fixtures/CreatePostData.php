@@ -12,7 +12,7 @@ class CreatePostData extends DataTransferObject
         public string $title,
         public array|null $tags,
         public PostStatus $postStatus,
-        public Post|null $post = null,
+        public ?Post $post = null,
         public array|string|null $country = null,
         public $description = '',
         $authorEmail = null

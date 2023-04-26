@@ -5,10 +5,13 @@ namespace OpenSoutheners\LaravelDto;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
 abstract class DataTransferObject
 {
+    use SerializesModels;
+
     /**
      * Initialise data transfer object from a request.
      */
@@ -26,63 +29,13 @@ abstract class DataTransferObject
      */
     public static function fromArray(...$args): static
     {
-        $dataArray = array_merge(...$args);
+        $propertiesMapper = new PropertiesMapper(array_merge(...$args), static::class);
 
-        $reflector = new \ReflectionClass(static::class);
+        $propertiesMapper->run();
 
-        $propertiesArr = [];
+        // print_r($propertiesMapper->get());
 
-        foreach ($dataArray as $key => $value) {
-            if (Str::endsWith($key, '_id')) {
-                $key = Str::replaceLast('_id', '', $key);
-            }
-
-            if (Str::contains($key, '_')) {
-                $key = Str::camel($key);
-            }
-
-            if ($reflector->hasProperty($key)) {
-                $type = (string) $reflector->getProperty($key)->getType();
-
-                if (str_contains($type, 'array')) {
-                    if (str_contains($type, 'string') && ! str_contains($value, ',')) {
-                        $propertiesArr[$key] = $value;
-                    } else {
-                        $propertiesArr[$key] = array_filter(explode(',', $value));
-                    }
-
-                    continue;
-                }
-
-                $type = Str::replaceFirst('?', '', $type);
-
-                if (is_subclass_of($type, 'Illuminate\Database\Eloquent\Model')) {
-                    $propertiesArr[$key] = static::getInstanceFromModel($type, $value);
-
-                    continue;
-                }
-
-                if (is_subclass_of($type, \BackedEnum::class)) {
-                    $propertiesArr[$key] = $type::tryFrom($value);
-
-                    continue;
-                }
-
-                $propertiesArr[$key] = $value;
-            }
-        }
-
-        return tap(new static(...$propertiesArr), fn (self $instance) => $instance->initialise());
-    }
-
-    /**
-     * Get instance from model class string and ID or key.
-     *
-     * @param class-string<\Illuminate\Database\Eloquent\Model> $model
-     */
-    protected static function getInstanceFromModel($model, mixed $id): mixed
-    {
-        return $model::find($id);
+        return tap(new static(...$propertiesMapper->get()), fn (self $instance) => $instance->initialise());
     }
 
     /**
