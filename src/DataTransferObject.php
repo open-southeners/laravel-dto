@@ -8,6 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
+use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
 {
@@ -43,35 +44,41 @@ abstract class DataTransferObject implements Arrayable
     public function filled(string $property): bool
     {
         $request = app(Request::class);
-        $classProperty = Str::camel($property);
+        $camelProperty = Str::camel($property);
 
         if ($request->route()) {
             return $request->has(Str::snake($property))
                 ?: $request->has($property)
-                ?: $request->has($classProperty);
+                ?: $request->has($camelProperty);
         }
+
+        $propertyInfoExtractor = PropertiesMapper::propertyInfoExtractor();
 
         $reflection = new \ReflectionClass($this);
 
-        $reflectionProperty = match (true) {
-            $reflection->hasProperty($property) => $reflection->getProperty($property),
-            $reflection->hasProperty($classProperty) => $reflection->getProperty($classProperty),
-            default => throw new Exception("Properties '{$property}' or '{$classProperty}' doesn't exists on class instance."),
+        $classProperty = match (true) {
+            $reflection->hasProperty($property) => $property,
+            $reflection->hasProperty($camelProperty) => $camelProperty,
+            default => throw new Exception("Properties '{$property}' or '{$camelProperty}' doesn't exists on class instance."),
         };
 
-        $defaultValue = $reflectionProperty->getDefaultValue();
+        $classPropertyTypes = $propertyInfoExtractor->getTypes(get_class($this), $classProperty);
+
+        $reflectionProperty = $reflection->getProperty($classProperty);
         $propertyValue = $reflectionProperty->getValue($this);
 
-        $reflectionPropertyType = $reflectionProperty->getType();
-
-        if ($reflectionPropertyType === null) {
+        if ($classPropertyTypes === null) {
             return function_exists('filled') && filled($propertyValue);
         }
+
+        $propertyDefaultValue = $reflectionProperty->getDefaultValue();
+
+        $propertyIsNullable = in_array(true, array_map(fn (Type $type) => $type->isNullable(), $classPropertyTypes), true);
 
         /**
          * Not filled when DTO property's default value is set to null while none is passed through
          */
-        if (! $propertyValue && $reflectionPropertyType->allowsNull() && $defaultValue === null) {
+        if (! $propertyValue && $propertyIsNullable && $propertyDefaultValue === null) {
             return false;
         }
 
@@ -80,7 +87,7 @@ abstract class DataTransferObject implements Arrayable
          *
          * @see problem with promoted properties and hasDefaultValue/getDefaultValue https://bugs.php.net/bug.php?id=81386
          */
-        if (! $reflectionProperty->isPromoted() && $reflectionProperty->hasDefaultValue() && $propertyValue === $defaultValue) {
+        if (! $reflectionProperty->isPromoted() && $reflectionProperty->hasDefaultValue() && $propertyValue === $propertyDefaultValue) {
             return false;
         }
 
@@ -90,7 +97,7 @@ abstract class DataTransferObject implements Arrayable
     /**
      * Initialise data transfer object (defaults, etc).
      */
-    public function initialise()
+    public function initialise(): static
     {
         $this->withDefaults();
 
@@ -115,11 +122,16 @@ abstract class DataTransferObject implements Arrayable
     public function toArray()
     {
         $properties = get_class_vars(get_class($this));
+        $newPropertiesArr = [];
 
         foreach ($properties as $key => $value) {
-            $properties[$key] = $this->{$key} ?? $value;
+            if (! $this->filled($key)) {
+                continue;
+            }
+
+            $newPropertiesArr[Str::snake($key)] = $this->{$key} ?? $value;
         }
 
-        return $properties;
+        return $newPropertiesArr;
     }
 }

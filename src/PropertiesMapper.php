@@ -14,9 +14,27 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
 
+/**
+ * The idea here is to leave DataTransferObject class without any properties that
+ * could harm developers experience with the package.
+ */
 class PropertiesMapper
 {
     protected ReflectionClass $reflector;
+
+    /**
+     * Get instance of property info extractor.
+     */
+    public static function propertyInfoExtractor(): PropertyInfoExtractor
+    {
+        $phpDocExtractor = new PhpDocExtractor();
+        $reflectionExtractor = new ReflectionExtractor();
+
+        return new PropertyInfoExtractor(
+            [$reflectionExtractor],
+            [$phpDocExtractor, $reflectionExtractor],
+        );
+    }
 
     public function __construct(
         protected array $properties,
@@ -26,15 +44,12 @@ class PropertiesMapper
         $this->reflector = new ReflectionClass($this->dataClass);
     }
 
+    /**
+     * Run properties mapper through all sent class properties.
+     */
     public function run(): static
     {
-        $phpDocExtractor = new PhpDocExtractor();
-        $reflectionExtractor = new ReflectionExtractor();
-
-        $propertyInfoExtractor = new PropertyInfoExtractor(
-            [$reflectionExtractor],
-            [$phpDocExtractor, $reflectionExtractor],
-        );
+        $propertyInfoExtractor = static::propertyInfoExtractor();
 
         foreach ($this->properties as $key => $value) {
             $propertyKey = $this->normalisePropertyKey($key);
