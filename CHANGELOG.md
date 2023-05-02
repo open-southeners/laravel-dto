@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2023-05-02
+
+### Changed
+
+- Properties returned from `toArray` are now snake cased (from `myPropertyName` to `my_property_name`)
+- Improved `toArray` to return just some modified properties (from defaults)
+
 ## [1.4.1] - 2023-04-26
 
 ### Added
