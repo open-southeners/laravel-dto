@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2023-08-10
+
+### Fixed
+
+- Minor issue, now doesn't query when sending model instance using `DataTransferObject::fromArray()` method
+
 ## [1.5.0] - 2023-05-02
 
 ### Changed
