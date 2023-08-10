@@ -58,9 +58,9 @@ class PropertiesMapper
                 continue;
             }
 
-            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataClass, $propertyKey);
+            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataClass, $propertyKey) ?? [];
 
-            if (! $propertyTypes || count($propertyTypes) === 0) {
+            if (count($propertyTypes) === 0) {
                 $this->data[$propertyKey] = $value;
 
                 continue;
@@ -140,7 +140,7 @@ class PropertiesMapper
     /**
      * Map data value into model instance.
      *
-     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
      */
     protected function mapIntoModel(string $modelClass, string $propertyKey, mixed $value)
     {
