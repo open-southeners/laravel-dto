@@ -95,6 +95,10 @@ class PropertiesMapper
      */
     protected function getModelInstance(string $model, mixed $id, array $with = [])
     {
+        if (is_a($id, $model)) {
+            return empty($with) ? $id : $id->loadMissing($with);
+        }
+
         $baseQuery = $model::query()->whereKey($id);
 
         if (count($with) > 0) {
