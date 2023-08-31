@@ -19,11 +19,12 @@ abstract class DataTransferObject implements Arrayable
      */
     public static function fromRequest(Request|FormRequest $request): static
     {
-        return static::fromArray(
+        return static::fromArray(array_merge(
+            is_object($request->route()) ? $request->route()->parameters() : [],
             $request instanceof FormRequest
                 ? $request->validated()
-                : $request->all()
-        );
+                : $request->all(),
+        ));
     }
 
     /**
