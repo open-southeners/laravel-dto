@@ -36,7 +36,10 @@ abstract class DataTransferObject implements Arrayable
 
         $propertiesMapper->run();
 
-        return tap(new static(...$propertiesMapper->get()), fn (self $instance) => $instance->initialise());
+        return tap(
+            new static(...$propertiesMapper->get()), 
+            fn (self $instance) => $instance->initialise()
+        );
     }
 
     /**
