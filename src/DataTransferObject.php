@@ -6,14 +6,11 @@ use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
 {
-    use SerializesModels;
-
     /**
      * Initialise data transfer object from a request.
      */
