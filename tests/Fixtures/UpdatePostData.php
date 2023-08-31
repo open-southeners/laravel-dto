@@ -6,6 +6,9 @@ use OpenSoutheners\LaravelDto\DataTransferObject;
 
 class UpdatePostData extends DataTransferObject
 {
+    /**
+     * @param string[] $tags
+     */
     public function __construct(
         public ?Post $post_id,
         public ?Post $parent = null,

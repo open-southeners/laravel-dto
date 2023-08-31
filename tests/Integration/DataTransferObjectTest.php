@@ -4,12 +4,14 @@ namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
+use OpenSoutheners\LaravelDto\Tests\Fixtures\User;
 use Orchestra\Testbench\TestCase;
 
 class DataTransferObjectTest extends TestCase
@@ -43,6 +45,16 @@ class DataTransferObjectTest extends TestCase
 
     public function testDataTransferObjectFromRequest()
     {
+        $user = (new User())->forceFill([
+            'id' => 1,
+            'name' => 'Ruben',
+            'email' => 'ruben@hello.com',
+            'password' => '',
+        ]);
+
+        Auth::shouldReceive('check')->andReturn(true);
+        Auth::shouldReceive('user')->andReturn($user);
+
         /** @var CreatePostFormRequest */
         $mock = Mockery::mock(app(CreatePostFormRequest::class))->makePartial();
 
@@ -62,6 +74,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertEquals('Hello world', $data->title);
         $this->assertIsArray($data->tags);
         $this->assertContains('bar', $data->tags);
+        $this->assertTrue($user->is($data->currentUser));
     }
 
     public function testDataTransferObjectFromArrayWithModels()

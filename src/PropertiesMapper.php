@@ -3,8 +3,10 @@
 namespace OpenSoutheners\LaravelDto;
 
 use BackedEnum;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
@@ -50,18 +52,19 @@ class PropertiesMapper
     public function run(): static
     {
         $propertyInfoExtractor = static::propertyInfoExtractor();
+        
+        $propertiesData = array_combine(
+            array_map(fn ($key) => $this->normalisePropertyKey($key), array_keys($this->properties)), 
+            array_values($this->properties)
+        );
 
-        foreach ($this->properties as $key => $value) {
-            $propertyKey = $this->normalisePropertyKey($key);
+        foreach ($propertyInfoExtractor->getProperties($this->dataClass) as $key) {
+            $value = $propertiesData[$key] ?? null;
 
-            if (! $propertyKey) {
-                continue;
-            }
-
-            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataClass, $propertyKey) ?? [];
+            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataClass, $key) ?? [];
 
             if (count($propertyTypes) === 0) {
-                $this->data[$propertyKey] = $value;
+                $this->data[$key] = $value;
 
                 continue;
             }
@@ -69,11 +72,25 @@ class PropertiesMapper
             $preferredType = reset($propertyTypes);
             $preferredTypeClass = $preferredType->getClassName();
 
-            $this->data[$propertyKey] = match (true) {
-                $preferredType->isCollection() => $this->mapIntoCollection($propertyTypes, $propertyKey, $value),
-                is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $propertyKey, $value),
-                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
+            if (
+                ! $value
+                && $preferredTypeClass === Authenticatable::class
+                && app('auth')->check()
+            ) {
+                $this->data[$key] = app('auth')->user();
+
+                continue;
+            }
+
+            if (is_null($value)) {
+                continue;
+            }
+
+            $this->data[$key] = match (true) {
                 default => $value,
+                $preferredType->isCollection() => $this->mapIntoCollection($propertyTypes, $key, $value),
+                is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
+                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
             };
         }
 

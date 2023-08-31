@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use OpenSoutheners\LaravelDto\DataTransferObject;
 
 class CreatePostData extends DataTransferObject
@@ -15,6 +16,7 @@ class CreatePostData extends DataTransferObject
         public ?Post $post = null,
         public array|string|null $country = null,
         public $description = '',
+        public ?Authenticatable $currentUser = null,
         $authorEmail = null
     ) {
         $this->authorEmail = $authorEmail;

@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Unit;
 
+use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
 use Mockery;
@@ -20,6 +21,12 @@ class DataTransferObjectTest extends TestCase
         $mockedConfig->shouldReceive('get')->andReturn(true);
 
         Container::getInstance()->bind('config', fn () => $mockedConfig);
+
+        $mockedAuth = Mockery::mock(AuthManager::class);
+
+        $mockedAuth->shouldReceive('check')->andReturn(false);
+
+        Container::getInstance()->bind('auth', fn () => $mockedAuth);
     }
 
     public function testDataTransferObjectFromArray()
