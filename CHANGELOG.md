@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2023-08-31
+
+### Added
+
+- Add binding resolution so DataTransferObjects can act as validated requests using `ValidatedDataTransferObject` interface
+- Add authenticated user “automagical” binding to `DataTransferObject` property when possible (need to be typed as Authenticatable illuminate's contract)
+
+### Changed
+
+- Now route parameters are merged into DataTransferObjects when running within requests context
+
 ## [1.5.1] - 2023-08-10
 
 ### Fixed
