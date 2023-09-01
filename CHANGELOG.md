@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2023-09-01
+
+### Added
+
+- Command option `--request` to create `ValidatedDataTransferObject` with request method in it.
+
 ## [1.6.0] - 2023-08-31
 
 ### Added
