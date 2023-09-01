@@ -84,4 +84,29 @@ class DataTransferObjectTest extends TestCase
         $this->assertContains('generic', $data->tags);
         $this->assertContains('post', $data->tags);
     }
+
+    public function testDataTransferObjectArrayWithoutTypedPropertiesGetsThroughWithoutChanges()
+    {
+        $helloTag = [
+            'name' => 'Hello world',
+            'slug' => 'hello-world'
+        ];
+
+        $travelingTag = [
+            'name' => 'Traveling guides',
+            'slug' => 'traveling-guides'
+        ];
+
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => [
+                $helloTag,
+                $travelingTag,
+            ],
+            'post_status' => PostStatus::Published->value,
+        ]);
+
+        $this->assertContains($helloTag, $data->tags);
+        $this->assertContains($travelingTag, $data->tags);
+    }
 }
