@@ -88,7 +88,7 @@ class PropertiesMapper
 
             $this->data[$key] = match (true) {
                 default => $value,
-                $preferredType->isCollection() => $this->mapIntoCollection($propertyTypes, $key, $value),
+                $preferredType->isCollection() || $preferredTypeClass === Collection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
                 is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
                 is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
             };
@@ -187,20 +187,20 @@ class PropertiesMapper
             return $value;
         }
 
-        $collection = array_filter(explode(',', $value));
+        $collection = Collection::make(
+            is_array($value)
+                ? $value
+                : explode(',', $value)
+        );
 
         $collectionTypes = $propertyType->getCollectionValueTypes();
 
-        if (count($collectionTypes) === 0) {
-            return $collection;
-        }
-
         $preferredCollectionType = reset($collectionTypes);
-        $preferredCollectionTypeClass = $preferredCollectionType->getClassName();
+        $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
 
-        $collection = array_map(fn ($item) => trim($item), $collection);
+        $collection = $collection->map('trim')->filter()->values();
 
-        if ($preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
+        if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
                 $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
                 $bindModelWithAttribute = reset($bindModelWithAttribute);
@@ -213,7 +213,7 @@ class PropertiesMapper
             }
         }
 
-        if ($propertyType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY && $collection instanceof Collection) {
+        if ($propertyType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY) {
             $collection = $collection->all();
         }
 

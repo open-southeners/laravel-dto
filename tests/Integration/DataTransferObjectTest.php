@@ -4,6 +4,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Mockery;
@@ -61,7 +62,8 @@ class DataTransferObjectTest extends TestCase
         $mock->shouldReceive('route')->andReturn('example');
         $mock->shouldReceive('validated')->andReturn([
             'title' => 'Hello world',
-            'tags' => 'foo,bar,test',
+            'tags' => ['foo', 'bar', 'test'],
+            'subscribers' => 'hello@world.com,hola@mundo.com,',
             'post_status' => PostStatus::Published->value,
         ]);
 
@@ -73,6 +75,10 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue($data->postStatus instanceof PostStatus);
         $this->assertEquals('Hello world', $data->title);
         $this->assertIsArray($data->tags);
+        $this->assertContains('bar', $data->tags);
+        $this->assertTrue($data->subscribers instanceof Collection);
+        $this->assertContains('hello@world.com', $data->subscribers->all());
+        $this->assertContains('hola@mundo.com', $data->subscribers->all());
         $this->assertContains('bar', $data->tags);
         $this->assertTrue($user->is($data->currentUser));
     }
