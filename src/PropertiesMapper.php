@@ -6,7 +6,6 @@ use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
