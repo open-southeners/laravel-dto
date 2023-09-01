@@ -1,0 +1,23 @@
+<?php
+
+namespace {{ namespace }};
+
+use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
+use OpenSoutheners\LaravelDto\DataTransferObject;
+
+final class {{ class }} extends DataTransferObject implements ValidatedDataTransferObject
+{
+    public function __construct(
+        // 
+    ) {
+        // 
+    }
+
+    /**
+     * Get form request that this data transfer object is based from.
+     */
+    public static function request(): string
+    {
+        // 
+    }
+}

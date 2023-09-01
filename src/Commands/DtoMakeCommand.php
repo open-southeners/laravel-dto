@@ -37,7 +37,13 @@ class DtoMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        $stub = '/stubs/dto.stub';
+        $stubSuffix = '';
+
+        if ($this->option('request')) {
+            $stubSuffix = '.request';
+        }
+
+        $stub = "/stubs/dto{$stubSuffix}.stub";
 
         return file_exists($customPath = $this->laravel->basePath(trim($stub, '/')))
             ? $customPath
@@ -64,6 +70,7 @@ class DtoMakeCommand extends GeneratorCommand
     {
         return [
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the data transfer object already exists'],
+            ['request', 'r', InputOption::VALUE_NONE, 'Create the class implementing ValidatedDataTransferObject interface & request method'],
         ];
     }
 }
