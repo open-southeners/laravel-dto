@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2023-09-01
+
+### Fixed
+
+- Laravel collections not being mapped properly
+- Arrays not mapping properly when not containing strings (arrays with arrays inside)
+
 ## [1.7.0] - 2023-09-01
 
 ### Added
