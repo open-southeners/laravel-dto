@@ -5,6 +5,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Unit;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
+use Illuminate\Support\Collection;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
@@ -108,5 +109,32 @@ class DataTransferObjectTest extends TestCase
 
         $this->assertContains($helloTag, $data->tags);
         $this->assertContains($travelingTag, $data->tags);
+    }
+
+    public function testDataTransferObjectArrayPropertiesGetsMappedAsCollection()
+    {
+        $rubenUser = [
+            'name' => 'Rubén Robles',
+            'email' => 'ruben@hello.com'
+        ];
+
+        $taylorUser = [
+            'name' => 'Taylor Otwell',
+            'email' => 'taylor@hello.com'
+        ];
+
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'subscribers' => [
+                $rubenUser,
+                $taylorUser,
+            ],
+            'post_status' => PostStatus::Published->value,
+        ]);
+
+        $this->assertTrue($data->subscribers instanceof Collection);
+        $this->assertContains($rubenUser, $data->subscribers);
+        $this->assertContains($taylorUser, $data->subscribers);
     }
 }
