@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2023-09-07
+
+### Added
+
+- `php artisan make:dto --request='App\Http\Requests\PostCreateFormRequest' PostCreateData` will now fill the request part and all properties for you with their types (**experimental**)
+- Map arrays or json strings into generic objects (`\stdClass`) or custom objects (using their classes)
+- Map string dates into `Illuminate\Support\Carbon` or `Carbon\Carbon` or `Carbon\CarbonImmutable` instances
+
 ## [1.7.1] - 2023-09-01
 
 ### Fixed
