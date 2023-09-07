@@ -3,6 +3,9 @@
 namespace OpenSoutheners\LaravelDto;
 
 use BackedEnum;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -10,6 +13,7 @@ use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use ReflectionClass;
+use stdClass;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -86,10 +90,15 @@ class PropertiesMapper
             }
 
             $this->data[$key] = match (true) {
-                default => $value,
                 $preferredType->isCollection() || $preferredTypeClass === Collection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
                 is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
                 is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
+                is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
+                $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
+                $preferredTypeClass === stdClass::class && Str::isJson($value) => json_decode($value),
+                $preferredTypeClass && class_exists($preferredTypeClass) && (new ReflectionClass($preferredTypeClass))->isInstantiable() && is_array($value) && is_string(array_key_first($value)) => new $preferredTypeClass(...$value),
+                $preferredTypeClass && class_exists($preferredTypeClass) && (new ReflectionClass($preferredTypeClass))->isInstantiable() && Str::isJson($value) => new $preferredTypeClass(...json_decode($value, true)),
+                default => $value,
             };
         }
 
@@ -168,6 +177,18 @@ class PropertiesMapper
             : [];
 
         return $this->getModelInstance($modelClass, $value, $bindModelWithRelationships);
+    }
+
+    /**
+     * Map data value into Carbon date/datetime instance.
+     */
+    public function mapIntoCarbonDate($carbonClass, mixed $value): CarbonInterface|null
+    {
+        if ($carbonClass === CarbonImmutable::class) {
+            return CarbonImmutable::make($value);
+        }
+
+        return Carbon::make($value);
     }
 
     /**

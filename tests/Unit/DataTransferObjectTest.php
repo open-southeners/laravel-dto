@@ -5,6 +5,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Unit;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
@@ -136,5 +137,79 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue($data->subscribers instanceof Collection);
         $this->assertContains($rubenUser, $data->subscribers);
         $this->assertContains($taylorUser, $data->subscribers);
+    }
+
+    public function testDataTransferObjectDatePropertiesGetMappedFromStringsIntoCarbonInstances()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+            'published_at' => '2023-09-06 17:35:53',
+            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "dede", "type": "text"}]}]}'
+        ]);
+
+        $this->assertTrue($data->publishedAt instanceof Carbon);
+        $this->assertTrue(now()->isAfter($data->publishedAt));
+    }
+
+    public function testDataTransferObjectDatePropertiesGetMappedFromJsonStringsIntoGenericObjects()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "hello world", "type": "text"}]}]}'
+        ]);
+
+        $this->assertTrue($data->content instanceof \stdClass);
+        $this->assertObjectHasProperty('type', $data->content);
+    }
+
+    public function testDataTransferObjectDatePropertiesGetMappedFromArraysIntoGenericObjects()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+            'content' => [
+                "type" => "doc",
+                "content" => [
+                    [
+                        "type" => "paragraph",
+                        "attrs" => [
+                            "textAlign" => "left",
+                        ],
+                        "content" => [
+                            [
+                                "text" => "hello world",
+                                "type" => "text",
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        ]);
+
+        $this->assertTrue($data->content instanceof \stdClass);
+        $this->assertObjectHasProperty('type', $data->content);
+    }
+
+    public function testDataTransferObjectDatePropertiesGetMappedFromArraysOfObjectsIntoCollectionOfGenericObjects()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+            'dates' => [
+                '2023-09-06 17:35:53',
+                '2023-09-07 06:35:53',
+            ]
+        ]);
+
+        $this->assertTrue($data->dates instanceof Collection);
+        $this->assertTrue($data->dates->first() instanceof Carbon);
+        $this->assertTrue(now()->isAfter($data->dates->first()));
+        $this->assertTrue(now()->isAfter($data->dates->last()));
     }
 }
