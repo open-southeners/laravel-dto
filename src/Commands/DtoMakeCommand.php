@@ -85,7 +85,7 @@ class DtoMakeCommand extends GeneratorCommand
      * Replace the namespace for the given stub.
      *
      * @param  string  $stub
-     * @param  string  $name
+     * @param  string  $requestClass
      * @return $this
      */
     protected function replaceProperties(&$stub, $requestClass)
@@ -104,6 +104,12 @@ class DtoMakeCommand extends GeneratorCommand
         return $this;
     }
 
+    /**
+     * Get the request properties for the given class.
+     *
+     * @param  string  $requestClass
+     * @return $this
+     */
     protected function getProperties(string $requestClass)
     {
         $requestInstance = app($requestClass);
@@ -115,7 +121,7 @@ class DtoMakeCommand extends GeneratorCommand
         // TODO: Sort nulls here to be prepended (need to create array first)
         foreach ($requestRules as $property => $rules) {
             if (str_ends_with('_id', $property)) {
-                $property = str_replace_last('/_id$/gu', '', $property);
+                $property = str_replace('/_id$/gu', '', $property);
             }
 
             $property = Str::camel($property);
@@ -150,6 +156,13 @@ class DtoMakeCommand extends GeneratorCommand
         return $properties;
     }
 
+    /**
+     * Replace the request class for the given stub.
+     *
+     * @param  string  $stub
+     * @param  string  $requestClass
+     * @return string
+     */
     public function replaceRequestClass(&$stub, $requestClass)
     {
         $requestClass ??= '// ';
