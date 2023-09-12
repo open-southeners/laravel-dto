@@ -130,7 +130,7 @@ class PropertiesMapper
             $baseQuery->with($with);
         }
 
-        if (is_array($id)) {
+        if (is_iterable($id)) {
             return $baseQuery->get();
         }
 
@@ -217,11 +217,11 @@ class PropertiesMapper
 
         $preferredCollectionType = reset($collectionTypes);
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
-
+        
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
             ->filter()
             ->values();
-
+        
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
                 $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
