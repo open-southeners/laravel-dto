@@ -48,9 +48,16 @@ abstract class DataTransferObject implements Arrayable
         $camelProperty = Str::camel($property);
 
         if ($request->route()) {
-            return $request->has(Str::snake($property))
+            $requestHasProperty = $request->has(Str::snake($property))
                 ?: $request->has($property)
                 ?: $request->has($camelProperty);
+
+            if (! $requestHasProperty && is_object($request->route())) {
+                return $request->route()->hasParameter($property)
+                    ?: $request->route()->hasParameter($camelProperty);
+            }
+
+            return $requestHasProperty;
         }
 
         $propertyInfoExtractor = PropertiesMapper::propertyInfoExtractor();
