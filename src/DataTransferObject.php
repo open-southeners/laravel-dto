@@ -136,8 +136,14 @@ abstract class DataTransferObject implements Arrayable
             if (! $this->filled($key)) {
                 continue;
             }
+            
+            $propertyValue = $this->{$key} ?? $value;
 
-            $newPropertiesArr[Str::snake($key)] = $this->{$key} ?? $value;
+            if ($propertyValue instanceof Arrayable) {
+                $propertyValue = $propertyValue->toArray();
+            }
+
+            $newPropertiesArr[Str::snake($key)] = $propertyValue;
         }
 
         return $newPropertiesArr;
