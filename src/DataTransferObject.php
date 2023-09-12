@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
 use Symfony\Component\PropertyInfo\Type;
 
@@ -44,6 +45,7 @@ abstract class DataTransferObject implements Arrayable
      */
     public function filled(string $property): bool
     {
+        /** @var \Illuminate\Http\Request $request */
         $request = app(Request::class);
         $camelProperty = Str::camel($property);
 
@@ -52,7 +54,7 @@ abstract class DataTransferObject implements Arrayable
                 ?: $request->has($property)
                 ?: $request->has($camelProperty);
 
-            if (! $requestHasProperty && is_object($request->route())) {
+            if (! $requestHasProperty && $request->route() instanceof Route) {
                 return $request->route()->hasParameter($property)
                     ?: $request->route()->hasParameter($camelProperty);
             }
