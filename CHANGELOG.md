@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2023-09-12
+
+### Fixed
+
+- Collections binding models were returning model instance instead of array or `Illuminate\Support\Collection` with the models inside
+- `DataTransferObject::filled()` method now checks within route parameters as well as sent request body data if is within request context
+- `DataTransferObject::toArray()` method now returns arrays with nested `toArray` calls when collections or models
+
 ## [1.8.0] - 2023-09-07
 
 ### Added
