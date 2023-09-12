@@ -13,37 +13,9 @@ use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\User;
-use Orchestra\Testbench\TestCase;
 
 class DataTransferObjectTest extends TestCase
 {
-    /**
-     * Define database migrations.
-     *
-     * @return void
-     */
-    protected function defineDatabaseMigrations()
-    {
-        $this->loadMigrationsFrom(__DIR__.'/../database');
-    }
-
-    /**
-     * Define environment setup.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
-     */
-    protected function defineEnvironment($app)
-    {
-        // Setup default database to use sqlite :memory:
-        $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
-    }
-
     public function testDataTransferObjectFromRequest()
     {
         $user = (new User())->forceFill([
