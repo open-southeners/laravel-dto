@@ -5,6 +5,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
 use OpenSoutheners\LaravelDto\DataTransferObject;
 use stdClass;
@@ -15,6 +16,7 @@ class UpdatePostWithRouteBindingData extends DataTransferObject implements Valid
      * @param \Illuminate\Support\Collection<\OpenSoutheners\LaravelDto\Tests\Fixtures\Tag>|null $tags
      */
     public function __construct(
+        #[BindModelWith('tags')]
         public Post $post,
         public ?string $title = null,
         public ?stdClass $content = null,

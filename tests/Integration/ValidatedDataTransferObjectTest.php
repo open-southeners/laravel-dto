@@ -25,12 +25,14 @@ class ValidatedDataTransferObjectTest extends TestCase
 
     public function testValidatedDataTransferObjectGetsRouteBoundModel()
     {
-        $post = Post::factory()->create();
+        $post = Post::factory()->hasAttached(
+            Tag::factory()->count(2)
+        )->create();
 
         $response = $this->patchJson('post/1', []);
 
         $response->assertJson([
-            'post' => $post->toArray(),
+            'post' => $post->load('tags')->toArray(),
         ], true);
     }
 

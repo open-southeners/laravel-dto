@@ -4,7 +4,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Post extends Model
 {
@@ -23,11 +23,11 @@ class Post extends Model
      * @var array<string>
      */
     protected $visible = [
-        'id', 'title', 'status',
+        'id', 'title', 'status', 'tags',
     ];
 
-    public function tags(): HasMany
+    public function tags(): BelongsToMany
     {
-        return $this->hasMany(Tag::class);
+        return $this->belongsToMany(Tag::class);
     }
 }
