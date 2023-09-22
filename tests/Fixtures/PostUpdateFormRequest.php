@@ -18,7 +18,7 @@ class PostUpdateFormRequest extends FormRequest
             'title' => 'string',
             'content' => ['nullable', 'string'],
             'tags' => ['nullable', 'string'],
-            'publish_at' => 'datetime',
+            'published_at' => 'date',
         ];
     }
 }

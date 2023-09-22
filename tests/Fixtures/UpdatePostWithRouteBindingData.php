@@ -2,8 +2,8 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
@@ -22,7 +22,7 @@ class UpdatePostWithRouteBindingData extends DataTransferObject implements Valid
         public ?stdClass $content = null,
         public ?PostStatus $postStatus = null,
         public ?Collection $tags = null,
-        public ?Carbon $publishedAt = null,
+        public ?CarbonImmutable $publishedAt = null,
         public ?Authenticatable $currentUser = null
     ) {
         // 
