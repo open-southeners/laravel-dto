@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2023-09-22
+
+### Added
+
+- `make:dto --request` command now accepts empty request option to create empty base DTO class with empty request method
+
+### Fixed
+
+- `make:dto --request` now fill request method properly 
+
 ## [1.8.1] - 2023-09-12
 
 ### Fixed
