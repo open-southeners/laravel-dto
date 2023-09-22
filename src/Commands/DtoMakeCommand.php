@@ -39,9 +39,14 @@ class DtoMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         $stubSuffix = '';
+        $requestOption = $this->option('request');
 
-        if ($this->option('request')) {
-            $stubSuffix = '.request';
+        if (! is_null($requestOption)) {
+            $stubSuffix .= '.request';
+        }
+
+        if ($requestOption === true) {
+            $stubSuffix .= '.plain';
         }
 
         $stub = "/stubs/dto{$stubSuffix}.stub";
@@ -76,6 +81,10 @@ class DtoMakeCommand extends GeneratorCommand
         $stub = parent::buildClass($name);
         
         $requestOption = $this->option('request');
+
+        if ($requestOption === true) {
+            return $stub;
+        }
 
         return $this->replaceProperties($stub, $requestOption)
             ->replaceRequestClass($stub, $requestOption);
@@ -165,19 +174,23 @@ class DtoMakeCommand extends GeneratorCommand
      */
     public function replaceRequestClass(&$stub, $requestClass)
     {
-        $requestClass ??= '// ';
+        $returnRequestClass = '// ';
+        
+        if ($requestClass && class_exists($requestClass)) {
+            $returnRequestClass = 'return ';
+            $returnRequestClass .= (new \ReflectionClass($requestClass))->getShortName();
+            $returnRequestClass .= ';';
+        }
 
         $searches = [
-            '{{ requestClass }}',
-            '{{requestClass}}',
+            '{{ requestClass }}' => $requestClass,
+            '{{requestClass}}' => $requestClass,
+            '{{ returnRequestClass }}' => $returnRequestClass,
+            '{{returnRequestClass}}' => $returnRequestClass,
         ];
 
-        foreach ($searches as $search) {
-            $stub = str_replace(
-                $search,
-                $requestClass,
-                $stub
-            );
+        foreach ($searches as $search => $replace) {
+            $stub = str_replace($search, $replace, $stub);
         }
 
         return $stub;
