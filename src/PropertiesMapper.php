@@ -5,9 +5,9 @@ namespace OpenSoutheners\LaravelDto;
 use BackedEnum;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
@@ -55,9 +55,9 @@ class PropertiesMapper
     public function run(): static
     {
         $propertyInfoExtractor = static::propertyInfoExtractor();
-        
+
         $propertiesData = array_combine(
-            array_map(fn ($key) => $this->normalisePropertyKey($key), array_keys($this->properties)), 
+            array_map(fn ($key) => $this->normalisePropertyKey($key), array_keys($this->properties)),
             array_values($this->properties)
         );
 
@@ -140,7 +140,7 @@ class PropertiesMapper
     /**
      * Normalise property key using camel case or original.
      */
-    protected function normalisePropertyKey(string $key): string|null
+    protected function normalisePropertyKey(string $key): ?string
     {
         $normaliseProperty = count($this->reflector->getAttributes(NormaliseProperties::class)) > 0
             ?: (app('config')->get('data-transfer-objects.normalise_properties') ?? true);
@@ -182,7 +182,7 @@ class PropertiesMapper
     /**
      * Map data value into Carbon date/datetime instance.
      */
-    public function mapIntoCarbonDate($carbonClass, mixed $value): CarbonInterface|null
+    public function mapIntoCarbonDate($carbonClass, mixed $value): ?CarbonInterface
     {
         if ($carbonClass === CarbonImmutable::class) {
             return CarbonImmutable::make($value);
@@ -217,11 +217,11 @@ class PropertiesMapper
 
         $preferredCollectionType = reset($collectionTypes);
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
-        
+
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
             ->filter()
             ->values();
-        
+
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
                 $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
@@ -231,7 +231,11 @@ class PropertiesMapper
 
                 $collection = $this->getModelInstance($preferredCollectionTypeClass, $collection, $bindModelWith);
             } else {
-                $collection = Collection::make($collection)->mapInto($preferredCollectionTypeClass);
+                $collection = $collection->map(
+                    fn ($item) => is_array($item)
+                        ? new $preferredCollectionTypeClass(...$item)
+                        : new $preferredCollectionTypeClass($item)
+                );
             }
         }
 
