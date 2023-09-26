@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use ReflectionClass;
@@ -118,8 +119,10 @@ class PropertiesMapper
      *
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
      */
-    protected function getModelInstance(string $model, mixed $id, array $with = [])
+    protected function getModelInstance(string $model, mixed $id, string $usingAttribute = null, array $with = [])
     {
+        $usingAttribute ??= (new $model)->getRouteKeyName();
+
         if (is_a($id, $model)) {
             return empty($with) ? $id : $id->loadMissing($with);
         }
@@ -170,13 +173,21 @@ class PropertiesMapper
     protected function mapIntoModel(string $modelClass, string $propertyKey, mixed $value)
     {
         $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
+        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModelWith>|null $bindModelWithAttribute */
         $bindModelWithAttribute = reset($bindModelWithAttribute);
 
-        $bindModelWithRelationships = $bindModelWithAttribute
-            ? (array) $bindModelWithAttribute->newInstance()->relationships
-            : [];
+        $bindModelUsingAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelUsing::class);
+        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModelUsing>|null $bindModelUsingAttribute */
+        $bindModelUsingAttribute = reset($bindModelUsingAttribute);
 
-        return $this->getModelInstance($modelClass, $value, $bindModelWithRelationships);
+        return $this->getModelInstance(
+            $modelClass,
+            $value,
+            $bindModelUsingAttribute ? $bindModelUsingAttribute->newInstance()->attribute : null,
+            $bindModelWithAttribute
+                ? (array) $bindModelWithAttribute->newInstance()->relationships
+                : []
+        );
     }
 
     /**
@@ -224,12 +235,7 @@ class PropertiesMapper
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
-                $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
-                $bindModelWithAttribute = reset($bindModelWithAttribute);
-
-                $bindModelWith = $bindModelWithAttribute ? (array) $bindModelWithAttribute->newInstance()->relationships : [];
-
-                $collection = $this->getModelInstance($preferredCollectionTypeClass, $collection, $bindModelWith);
+                $collection = $this->mapIntoModel($preferredCollectionTypeClass, $propertyKey, $collection);
             } else {
                 $collection = $collection->map(
                     fn ($item) => is_array($item)
