@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2023-09-26
+
+### Added
+
+- `OpenSoutheners\LaravelDto\Attributes\BindModelUsing` property PHP attribute class for use attribute to do the binding/serialisation
+
 ## [1.8.3] - 2023-09-26
 
 ### Fixed
