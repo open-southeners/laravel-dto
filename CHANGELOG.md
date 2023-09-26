@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.3] - 2023-09-26
+
+### Fixed
+
+- Issue mapping custom objects from data collections (native arrays or Illuminate's collections)
+
 ## [1.8.2] - 2023-09-22
 
 ### Added
