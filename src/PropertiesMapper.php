@@ -6,7 +6,9 @@ use BackedEnum;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -121,13 +123,15 @@ class PropertiesMapper
      */
     protected function getModelInstance(string $model, mixed $id, string $usingAttribute = null, array $with = [])
     {
-        $usingAttribute ??= (new $model)->getRouteKeyName();
-
         if (is_a($id, $model)) {
             return empty($with) ? $id : $id->loadMissing($with);
         }
 
-        $baseQuery = $model::query()->whereKey($id);
+        $baseQuery = $model::query()->when(
+            $usingAttribute,
+            fn (Builder $query) => $query->where($usingAttribute, $id),
+            fn (Builder $query) => $query->whereKey($id)
+        );
 
         if (count($with) > 0) {
             $baseQuery->with($with);
@@ -180,10 +184,16 @@ class PropertiesMapper
         /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModelUsing>|null $bindModelUsingAttribute */
         $bindModelUsingAttribute = reset($bindModelUsingAttribute);
 
+        $bindModelUsingAttribute = $bindModelUsingAttribute ? $bindModelUsingAttribute->newInstance()->attribute : null;
+
+        if (! $bindModelUsingAttribute && app(Request::class)->route($propertyKey)) {
+            $bindModelUsingAttribute = app(Request::class)->route()->bindingFieldFor($propertyKey) ?? (new $modelClass)->getRouteKeyName();
+        }
+
         return $this->getModelInstance(
             $modelClass,
             $value,
-            $bindModelUsingAttribute ? $bindModelUsingAttribute->newInstance()->attribute : null,
+            $bindModelUsingAttribute,
             $bindModelWithAttribute
                 ? (array) $bindModelWithAttribute->newInstance()->relationships
                 : []
