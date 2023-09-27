@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2023-09-27
+
+### Changed
+
+- Model binding defaults to primary key instead of `Model::getRouteKeyName()` (which should be used for those coming from routes instead)
+- Route bound models are using specified attributes instead of default to IDs (model's primary keys). For e.g. `posts/{post:slug}` will use slug on the DTO query
+
+### Fixed
+
+- BindModelUsing now uses the attribute on the binding query
+
 ## [1.9.0] - 2023-09-26
 
 ### Added
