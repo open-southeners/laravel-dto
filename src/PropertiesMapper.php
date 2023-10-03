@@ -219,6 +219,14 @@ class PropertiesMapper
      */
     protected function mapIntoCollection(array $propertyTypes, string $propertyKey, mixed $value)
     {
+        if ($value instanceof Collection) {
+            return $value;
+        }
+
+        if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
+            return $value->toBase();
+        }
+
         $propertyType = reset($propertyTypes);
 
         if (

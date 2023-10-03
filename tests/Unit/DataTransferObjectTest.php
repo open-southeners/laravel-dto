@@ -212,4 +212,21 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue(now()->isAfter($data->dates->first()));
         $this->assertTrue(now()->isAfter($data->dates->last()));
     }
+
+    public function testDataTransferObjectDatePropertiesDoesNotGetMappedFromCollectionsToSameType()
+    {
+        $data = CreatePostData::fromArray([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+            'dates' => Collection::make([
+                '2023-09-06 17:35:53',
+                '2023-09-07 06:35:53',
+            ])
+        ]);
+
+        $this->assertTrue($data->dates instanceof Collection);
+        $this->assertFalse($data->dates->first() instanceof Carbon);
+        $this->assertIsString($data->dates->first());
+    }
 }
