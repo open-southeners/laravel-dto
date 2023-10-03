@@ -17,7 +17,7 @@ use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use ReflectionClass;
 use stdClass;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
@@ -35,12 +35,12 @@ class PropertiesMapper
      */
     public static function propertyInfoExtractor(): PropertyInfoExtractor
     {
-        $phpDocExtractor = new PhpDocExtractor();
+        $phpStanExtractor = new PhpStanExtractor();
         $reflectionExtractor = new ReflectionExtractor();
 
         return new PropertyInfoExtractor(
             [$reflectionExtractor],
-            [$phpDocExtractor, $reflectionExtractor],
+            [$phpStanExtractor, $reflectionExtractor],
         );
     }
 
