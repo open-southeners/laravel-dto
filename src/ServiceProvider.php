@@ -24,7 +24,7 @@ class ServiceProvider extends BaseServiceProvider
             function ($dataClass, $parameters, $app) {
                 /** @var \Illuminate\Foundation\Application $app */
                 $app->scoped($dataClass, fn () => $dataClass::fromRequest(
-                    $app->get($dataClass::request())
+                    app($dataClass::request())
                 ));
             }
         );
