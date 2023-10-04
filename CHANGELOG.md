@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.2] - 2023-10-04
+
+### Changed
+
+- Better error reporting when DTO class is being bound to a controller
+
 ## [1.10.1] - 2023-10-04
 
 ### Fixed
