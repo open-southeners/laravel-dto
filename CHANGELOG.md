@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.3] - 2023-10-04
+
+### Changed
+
+- `ValidatedDataTransferObject` interface is no longer resolved, instead `DataTransferObject` class will be the one resolved (for those DTOs that doesn't have a `FormRequest` class on them, validated form data)
+
 ## [1.10.2] - 2023-10-04
 
 ### Changed
