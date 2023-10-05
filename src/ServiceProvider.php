@@ -25,7 +25,7 @@ class ServiceProvider extends BaseServiceProvider
             function ($dataClass, $parameters, $app) {
                 /** @var \Illuminate\Foundation\Application $app */
                 $app->scoped($dataClass, fn () => $dataClass::fromRequest(
-                    app($dataClass instanceof ValidatedDataTransferObject ? $dataClass::request() : Request::class)
+                    app(is_subclass_of($dataClass, ValidatedDataTransferObject::class) ? $dataClass::request() : Request::class)
                 ));
             }
         );
@@ -38,6 +38,6 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
-        // 
+        //
     }
 }
