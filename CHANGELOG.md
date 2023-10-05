@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.4] - 2023-10-05
+
+### Fixed
+
+- Validation not applied for ValidatedDataTransferObject interface DTOs
+
 ## [1.10.3] - 2023-10-04
 
 ### Changed
