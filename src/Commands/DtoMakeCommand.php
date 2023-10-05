@@ -3,9 +3,9 @@
 namespace OpenSoutheners\LaravelDto\Commands;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
-use Illuminate\Support\Str;
 
 #[AsCommand(name: 'make:dto')]
 class DtoMakeCommand extends GeneratorCommand
@@ -67,7 +67,6 @@ class DtoMakeCommand extends GeneratorCommand
         return $rootNamespace.'\DataTransferObjects';
     }
 
-
     /**
      * Build the class with the given name.
      *
@@ -79,7 +78,7 @@ class DtoMakeCommand extends GeneratorCommand
     protected function buildClass($name)
     {
         $stub = parent::buildClass($name);
-        
+
         $requestOption = $this->option('request');
 
         if ($requestOption === true) {
@@ -116,12 +115,11 @@ class DtoMakeCommand extends GeneratorCommand
     /**
      * Get the request properties for the given class.
      *
-     * @param  string  $requestClass
      * @return string
      */
     protected function getProperties(string $requestClass)
     {
-        $requestInstance = app($requestClass);
+        $requestInstance = new $requestClass;
         $properties = '';
 
         $requestRules = $requestInstance->rules();
@@ -158,7 +156,7 @@ class DtoMakeCommand extends GeneratorCommand
             $properties .= "public {$propertyType} \${$property}";
 
             if (str_contains($rules, 'nullable')) {
-                $properties .= " = null";
+                $properties .= ' = null';
             }
         }
 
@@ -175,7 +173,7 @@ class DtoMakeCommand extends GeneratorCommand
     public function replaceRequestClass(&$stub, $requestClass)
     {
         $returnRequestClass = '// ';
-        
+
         if ($requestClass && class_exists($requestClass)) {
             $returnRequestClass = 'return ';
             $returnRequestClass .= (new \ReflectionClass($requestClass))->getShortName();
