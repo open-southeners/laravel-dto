@@ -51,7 +51,7 @@ class DtoMakeCommandTest extends TestCase
             'use OpenSoutheners\LaravelDto\Tests\Fixtures\PostCreateFormRequest;',
             'final class CreatePostData',
             'implements ValidatedDataTransferObject',
-            'return PostCreateFormRequest;',
+            'return PostCreateFormRequest::class;',
         ], 'app/DataTransferObjects/CreatePostData.php');
     }
 }
