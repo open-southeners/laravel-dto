@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.5] - 2023-10-05
+
+### Fixed
+
+- `make:dto` command with validated requests sent to option
+
 ## [1.10.4] - 2023-10-05
 
 ### Fixed
