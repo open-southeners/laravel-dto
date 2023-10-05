@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.6] - 2023-10-05
+
+### Fixed
+
+- `make:dto` with request option doesn’t add class string to static method
+
 ## [1.10.5] - 2023-10-05
 
 ### Fixed
