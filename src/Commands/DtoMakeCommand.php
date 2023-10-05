@@ -177,7 +177,7 @@ class DtoMakeCommand extends GeneratorCommand
         if ($requestClass && class_exists($requestClass)) {
             $returnRequestClass = 'return ';
             $returnRequestClass .= (new \ReflectionClass($requestClass))->getShortName();
-            $returnRequestClass .= ';';
+            $returnRequestClass .= '::class;';
         }
 
         $searches = [
