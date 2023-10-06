@@ -127,6 +127,10 @@ class DtoMakeCommand extends GeneratorCommand
 
         // TODO: Sort nulls here to be prepended (need to create array first)
         foreach ($requestRules as $property => $rules) {
+            if (str_contains($property, '.')) {
+                continue;
+            }
+
             if (str_ends_with('_id', $property)) {
                 $property = preg_replace('/_id$/', '', $property);
             }
