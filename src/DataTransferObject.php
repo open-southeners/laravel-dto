@@ -12,6 +12,8 @@ use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
 {
+    private bool $fromRequestContext = false;
+
     /**
      * Initialise data transfer object from a request.
      */
@@ -22,7 +24,7 @@ abstract class DataTransferObject implements Arrayable
             $request instanceof FormRequest
                 ? $request->validated()
                 : $request->all(),
-        ));
+        ))->fromRequestContext();
     }
 
     /**
@@ -35,7 +37,7 @@ abstract class DataTransferObject implements Arrayable
         $propertiesMapper->run();
 
         return tap(
-            new static(...$propertiesMapper->get()), 
+            new static(...$propertiesMapper->get()),
             fn (self $instance) => $instance->initialise()
         );
     }
@@ -49,7 +51,7 @@ abstract class DataTransferObject implements Arrayable
         $request = app(Request::class);
         $camelProperty = Str::camel($property);
 
-        if ($request->route()) {
+        if ($this->fromRequestContext && $request->route()) {
             $requestHasProperty = $request->has(Str::snake($property))
                 ?: $request->has($property)
                 ?: $request->has($camelProperty);
@@ -131,23 +133,34 @@ abstract class DataTransferObject implements Arrayable
      */
     public function toArray()
     {
-        $properties = get_class_vars(get_class($this));
+        /** @var array<\ReflectionProperty> $properties */
+        $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
         $newPropertiesArr = [];
 
-        foreach ($properties as $key => $value) {
-            if (! $this->filled($key)) {
+        foreach ($properties as $property) {
+            if (! $this->filled($property->name)) {
                 continue;
             }
-            
-            $propertyValue = $this->{$key} ?? $value;
+
+            $propertyValue = $property->getValue($this) ?? $property->getDefaultValue();
 
             if ($propertyValue instanceof Arrayable) {
                 $propertyValue = $propertyValue->toArray();
             }
 
-            $newPropertiesArr[Str::snake($key)] = $propertyValue;
+            $newPropertiesArr[Str::snake($property->name)] = $propertyValue;
         }
 
         return $newPropertiesArr;
+    }
+
+    /**
+     * Data transfer object instanced from request context.
+     */
+    public function fromRequestContext(bool $value = true): self
+    {
+        $this->fromRequestContext = $value;
+
+        return $this;
     }
 }

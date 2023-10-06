@@ -83,17 +83,18 @@ class DataTransferObjectTest extends TestCase
         $mock = Mockery::mock(app(Request::class))->makePartial();
 
         $mock->shouldReceive('route')->andReturn('example');
+        $mock->shouldReceive('all')->andReturn([
+            'title' => 'Hello world',
+            'tags' => '',
+            'post_status' => PostStatus::Published->value,
+        ]);
         $mock->shouldReceive('has')->withArgs(['post_status'])->andReturn(true);
         $mock->shouldReceive('has')->withArgs(['postStatus'])->andReturn(true);
         $mock->shouldReceive('has')->withArgs(['post'])->andReturn(false);
 
         app()->bind(Request::class, fn () => $mock);
 
-        $data = CreatePostData::fromArray([
-            'title' => 'Hello world',
-            'tags' => '',
-            'post_status' => PostStatus::Published->value,
-        ]);
+        $data = CreatePostData::fromRequest($mock);
 
         $this->assertFalse($data->filled('tags'));
         $this->assertTrue($data->filled('post_status'));
