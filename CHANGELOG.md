@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.8] - 2023-10-06
+
+### Fixed
+
+- Fix `make:dto` command when validated form request sent with properties that has children items like `array.*.item`
+
 ## [1.10.7] - 2023-10-06
 
 ### Fixed
