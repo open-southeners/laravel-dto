@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.9] - 2023-10-06
+
+### Fixed
+
+- `make:dto` with `_id` ending properties
+
 ## [1.10.8] - 2023-10-06
 
 ### Fixed
