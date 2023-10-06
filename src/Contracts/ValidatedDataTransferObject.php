@@ -15,8 +15,8 @@ interface ValidatedDataTransferObject
     /**
      * Initialise data transfer object from a request.
      */
-    public static function fromRequest(Request|FormRequest $request): static;
-    
+    public static function fromRequest(Request|FormRequest $request);
+
     /**
      * Initialise data transfer object from array.
      */

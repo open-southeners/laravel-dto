@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -93,7 +94,7 @@ class PropertiesMapper
             }
 
             $this->data[$key] = match (true) {
-                $preferredType->isCollection() || $preferredTypeClass === Collection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
+                $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
                 is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
                 is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
@@ -216,15 +217,12 @@ class PropertiesMapper
      * Map data value into collection of items with subtypes.
      *
      * @param  array<\Symfony\Component\PropertyInfo\Type>  $propertyTypes
+     * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection|array|string  $value
      */
     protected function mapIntoCollection(array $propertyTypes, string $propertyKey, mixed $value)
     {
         if ($value instanceof Collection) {
-            return $value;
-        }
-
-        if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
-            return $value->toBase();
+            return $value instanceof EloquentCollection ? $value->toBase() : $value;
         }
 
         $propertyType = reset($propertyTypes);
