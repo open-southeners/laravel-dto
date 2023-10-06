@@ -119,7 +119,7 @@ class DtoMakeCommand extends GeneratorCommand
      */
     protected function getProperties(string $requestClass)
     {
-        $requestInstance = new $requestClass;
+        $requestInstance = new $requestClass();
         $properties = '';
 
         $requestRules = $requestInstance->rules();
@@ -131,7 +131,9 @@ class DtoMakeCommand extends GeneratorCommand
                 continue;
             }
 
-            if (str_ends_with('_id', $property)) {
+            $originalPropertyName = $property;
+
+            if (str_ends_with($property, '_id')) {
                 $property = preg_replace('/_id$/', '', $property);
             }
 
@@ -153,7 +155,7 @@ class DtoMakeCommand extends GeneratorCommand
                 $propertyType = "?{$propertyType}";
             }
 
-            if ($firstRequestRuleProperty !== $property) {
+            if ($firstRequestRuleProperty !== $originalPropertyName) {
                 $properties .= ",\n\t\t";
             }
 
