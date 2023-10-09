@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.10] - 2023-10-09
+
+### Fixed
+
+- Request option for `make:dto` command when sent without a value fails
+
 ## [1.10.9] - 2023-10-06
 
 ### Fixed
