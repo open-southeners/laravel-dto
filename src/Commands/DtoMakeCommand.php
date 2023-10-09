@@ -39,13 +39,13 @@ class DtoMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         $stubSuffix = '';
-        $requestOption = $this->option('request');
+        $hasRequestOption = $this->hasOption('request');
 
-        if (! is_null($requestOption)) {
+        if ($hasRequestOption) {
             $stubSuffix .= '.request';
         }
 
-        if ($requestOption === true) {
+        if ($hasRequestOption && $this->option('request') === null) {
             $stubSuffix .= '.plain';
         }
 
@@ -81,7 +81,7 @@ class DtoMakeCommand extends GeneratorCommand
 
         $requestOption = $this->option('request');
 
-        if ($requestOption === true) {
+        if ($requestOption === null && $this->hasOption('request')) {
             return $stub;
         }
 
@@ -119,6 +119,10 @@ class DtoMakeCommand extends GeneratorCommand
      */
     protected function getProperties(string $requestClass)
     {
+        if (! class_exists($requestClass)) {
+            return '';
+        }
+
         $requestInstance = new $requestClass();
         $properties = '';
 
@@ -143,6 +147,7 @@ class DtoMakeCommand extends GeneratorCommand
 
             $propertyType = match (true) {
                 str_contains($rules, 'string') => 'string',
+                str_contains($rules, 'boolean') => 'bool',
                 str_contains($rules, 'numeric') => 'int',
                 str_contains($rules, 'integer') => 'int',
                 str_contains($rules, 'array') => 'array',
