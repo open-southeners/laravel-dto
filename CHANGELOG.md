@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.11] - 2023-10-11
+
+### Fixed
+
+- Sending multiple values (for e.g. 1,2,5) on a collection with `BindModelUsing` attribute or custom model's `getRouteKeyName` method now works querying all models
+- `make:dto` command now does not generate a `ValidatedDataTransferObject` with request static method on it
+
 ## [1.10.10] - 2023-10-09
 
 ### Fixed
