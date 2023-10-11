@@ -39,13 +39,13 @@ class DtoMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         $stubSuffix = '';
-        $hasRequestOption = $this->hasOption('request');
+        $requestOption = $this->option('request');
 
-        if ($hasRequestOption) {
+        if ($requestOption !== false) {
             $stubSuffix .= '.request';
         }
 
-        if ($hasRequestOption && $this->option('request') === null) {
+        if ($requestOption === null) {
             $stubSuffix .= '.plain';
         }
 
@@ -214,7 +214,7 @@ class DtoMakeCommand extends GeneratorCommand
     {
         return [
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the data transfer object already exists'],
-            ['request', 'r', InputOption::VALUE_OPTIONAL, 'Create the class implementing ValidatedDataTransferObject interface & request method'],
+            ['request', 'r', InputOption::VALUE_OPTIONAL, 'Create the class implementing ValidatedDataTransferObject interface & request method', false],
         ];
     }
 }
