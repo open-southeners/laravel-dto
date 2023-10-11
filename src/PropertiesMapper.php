@@ -130,7 +130,7 @@ class PropertiesMapper
 
         $baseQuery = $model::query()->when(
             $usingAttribute,
-            fn (Builder $query) => $query->where($usingAttribute, $id),
+            fn (Builder $query) => is_iterable($id) ? $query->whereIn($usingAttribute, $id) : $query->where($usingAttribute, $id),
             fn (Builder $query) => $query->whereKey($id)
         );
 
