@@ -97,5 +97,34 @@ class ValidatedDataTransferObjectTest extends TestCase
         ]);
 
         $this->assertEmpty(DB::getQueryLog());
+        $this->assertTrue($data->post->is($post));
+    }
+
+    public function testDataTransferObjectCanBeSerializedAndDeserialized()
+    {
+        $this->withoutExceptionHandling();
+
+        Post::factory()->create();
+
+        Tag::factory()->create();
+        Tag::factory()->create();
+
+        $data = UpdatePostWithRouteBindingData::fromArray([
+            'post' => '1',
+            'tags' => '1,2',
+            'post_status' => 'test_non_existing_status',
+            'published_at' => '2023-09-06 17:35:53',
+        ]);
+
+        $serializedData = serialize($data);
+
+        $this->assertIsString($serializedData);
+
+        $deserializedData = unserialize($serializedData);
+
+        $this->assertTrue($data->post->is($deserializedData->post));
+        $this->assertTrue($deserializedData->post->relationLoaded('tags'));
+        $this->assertTrue($data->tags->first()->is($deserializedData->tags->first()));
+        $this->assertTrue($data->publishedAt->eq($deserializedData->publishedAt));
     }
 }

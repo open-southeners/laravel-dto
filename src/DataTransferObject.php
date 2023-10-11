@@ -2,12 +2,17 @@
 
 namespace OpenSoutheners\LaravelDto;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
+use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
@@ -162,5 +167,65 @@ abstract class DataTransferObject implements Arrayable
         $this->fromRequestContext = $value;
 
         return $this;
+    }
+
+    public function __serialize(): array
+    {
+        $reflection = new \ReflectionClass($this);
+        
+        /** @var array<\ReflectionProperty> $properties */
+        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        
+        $serialisableArr = [];
+        
+        foreach ($properties as $property) {
+            $key = $property->getName();
+            $value = $property->getValue($this);
+            
+            /** @var array<\ReflectionAttribute> $propertyAttributes */
+            $propertyAttributes = $property->getAttributes();
+            $propertyBindingAttributes = [
+                'using' => null,
+            ];
+
+            foreach ($propertyAttributes as $attribute) {
+                $attributeInstance = $attribute->newInstance();
+
+                if ($attributeInstance instanceof BindModelUsing) {
+                    $propertyBindingAttributes['using'] = $attributeInstance->attribute;
+                }
+            }
+
+            $serialisableArr[$key] = match (true) {
+                $value instanceof Model => $value->getAttribute($propertyBindingAttributes['using'] ?? $value->getRouteKeyName()),
+                $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
+                $value instanceof Arrayable => $value->toArray(),
+                $value instanceof \Stringable => (string) $value,
+                is_array($value) => head($value) instanceof Model ? implode(',', array_map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()))) : implode(',', $value),
+                default => $value,
+            };
+        }
+
+        return $serialisableArr;
+    }
+
+    /**
+     * Called during unserialization of the object.
+     */
+    public function __unserialize(array $data): void
+    {
+        $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+        $propertiesMapper = new PropertiesMapper(array_merge($data), static::class);
+
+        $propertiesMapper->run();
+
+        $data = $propertiesMapper->get();
+
+        foreach ($properties as $property) {
+            $key = $property->getName();
+            
+            $this->{$key} = $data[$key] ?? $property->getDefaultValue();
+        }
     }
 }
