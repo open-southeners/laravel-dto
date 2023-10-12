@@ -90,7 +90,7 @@ class TypeGenerator
         $propertyTypeString = $propertyType->getClassName() ?? $propertyBuiltInType;
 
         return match (true) {
-            $propertyType->isCollection() => $this->extractCollectionType($propertyTypeString, $propertyType->getCollectionValueTypes()),
+            $propertyType->isCollection() || is_a($propertyTypeString, Collection::class, true) => $this->extractCollectionType($propertyTypeString, $propertyType->getCollectionValueTypes()),
             is_a($propertyTypeString, Model::class, true) => $this->extractModelType($propertyTypeString),
             is_a($propertyTypeString, \BackedEnum::class, true) => $this->extractEnumType($propertyTypeString),
             $propertyBuiltInType === 'object' && $propertyBuiltInType !== $propertyTypeString => $this->extractObjectType($propertyTypeString),
