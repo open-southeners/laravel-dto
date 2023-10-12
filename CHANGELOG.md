@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2023-10-12
+
+### Added
+
+- Serialisation for DTO objects so now they can be sent to queued jobs
+- `dto:typescript` command for generating TypeScript types based on your application's DTOs
+
 ## [1.10.11] - 2023-10-11
 
 ### Fixed
