@@ -151,6 +151,10 @@ class TypeGenerator
     {
         $collectedType = reset($collectedTypes);
 
+        if (! $collectedType) {
+            return 'Array<unknown>';
+        }
+
         return $this->extractTypeFromPropertyType($collectedType);
     }
 
