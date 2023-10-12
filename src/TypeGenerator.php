@@ -52,17 +52,16 @@ class TypeGenerator
             if (is_a($propertyTypeClass, Authenticatable::class, true)) {
                 continue;
             }
-
-            $nullMark = $propertyType->isNullable() ? '?' : '';
             
             $propertyTypeAsString = $this->extractTypeFromPropertyType($propertyType);
             $propertyKeyAsString = $property->getName();
 
             if ($normalisesPropertiesKeys) {
-                $propertyKeyAsString = Str::camel($propertyKeyAsString);
+                $propertyKeyAsString = Str::snake($propertyKeyAsString);
                 $propertyKeyAsString .= is_subclass_of($propertyTypeClass, Model::class) ? '_id' : '';
             }
 
+            $nullMark = $propertyType->isNullable() ? '?' : '';
             $exportAsString .= "\t{$propertyKeyAsString}{$nullMark}: {$propertyTypeAsString};\n";
         }
 
