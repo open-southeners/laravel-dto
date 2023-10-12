@@ -5,6 +5,7 @@ namespace OpenSoutheners\LaravelDto;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use OpenSoutheners\LaravelDto\Commands\DtoMakeCommand;
+use OpenSoutheners\LaravelDto\Commands\DtoTypesGenerateCommand;
 use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
 
 class ServiceProvider extends BaseServiceProvider
@@ -17,7 +18,7 @@ class ServiceProvider extends BaseServiceProvider
     public function boot()
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([DtoMakeCommand::class]);
+            $this->commands([DtoMakeCommand::class, DtoTypesGenerateCommand::class]);
         }
 
         $this->app->beforeResolving(
