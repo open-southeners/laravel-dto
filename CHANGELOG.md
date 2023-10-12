@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2023-10-12
+
+### Fixed
+
+- Keys normalisation on types generator (snake case when enabled from config)
+- Types generator when empty collections
+
 ## [2.0.0] - 2023-10-12
 
 ### Added
