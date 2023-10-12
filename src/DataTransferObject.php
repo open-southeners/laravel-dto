@@ -201,7 +201,7 @@ abstract class DataTransferObject implements Arrayable
                 $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
                 $value instanceof Arrayable => $value->toArray(),
                 $value instanceof \Stringable => (string) $value,
-                is_array($value) => head($value) instanceof Model ? implode(',', array_map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()))) : implode(',', $value),
+                is_array($value) => head($value) instanceof Model ? implode(',', array_map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()), $value)) : implode(',', $value),
                 default => $value,
             };
         }
@@ -224,7 +224,7 @@ abstract class DataTransferObject implements Arrayable
 
         foreach ($properties as $property) {
             $key = $property->getName();
-            
+
             $this->{$key} = $data[$key] ?? $property->getDefaultValue();
         }
     }
