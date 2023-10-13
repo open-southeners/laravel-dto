@@ -20,14 +20,24 @@ class TypeGenerator
         '\stdClass' => 'Record<string, unknown>',
     ];
 
-    public function __construct(protected string $dataTransferObject, protected Collection $garbageCollection)
-    {
+    public function __construct(
+        protected string $dataTransferObject,
+        protected Collection $generatedTypes
+    ) {
         // 
     }
 
     public function generate(): void
     {
         $reflection = new ReflectionClass($this->dataTransferObject);
+
+        /** 
+         * Only needed when non-typed properties are found to compare with isOptional
+         * on the parameter reflector.
+         * 
+         * @var array<\ReflectionParameter> $constructorParameters
+         */
+        $constructorParameters = $reflection->getConstructor()->getParameters();
 
         $normalisesPropertiesKeys = config('data-transfer-objects.normalise_properties', true);
         
@@ -44,10 +54,10 @@ class TypeGenerator
         
         foreach ($properties as $property) {
             /** @var array<\Symfony\Component\PropertyInfo\Type> $propertyTypes */
-            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataTransferObject, $property->getName());
+            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataTransferObject, $property->getName()) ?? [];
             $propertyType = reset($propertyTypes);
 
-            $propertyTypeClass = $propertyType->getClassName();
+            $propertyTypeClass = $propertyType ? $propertyType->getClassName() : null;
 
             if (is_a($propertyTypeClass, Authenticatable::class, true)) {
                 continue;
@@ -61,13 +71,37 @@ class TypeGenerator
                 $propertyKeyAsString .= is_subclass_of($propertyTypeClass, Model::class) ? '_id' : '';
             }
 
-            $nullMark = $propertyType->isNullable() ? '?' : '';
+            $nullMark = $this->isNullableProperty(
+                $propertyType,
+                $property->getName(),
+                $constructorParameters
+            ) ? '?' : '';
+
             $exportAsString .= "\t{$propertyKeyAsString}{$nullMark}: {$propertyTypeAsString};\n";
         }
 
         $exportAsString .= "};";
 
-        $this->garbageCollection[$exportedType] = $exportAsString;
+        $this->generatedTypes[$exportedType] = $exportAsString;
+    }
+
+    /**
+     * @param array<\ReflectionParameter> $constructorParameters
+     */
+    protected function isNullableProperty(Type|false $propertyType, string $propertyName, array $constructorParameters): bool
+    {
+        if ($propertyType) {
+            return $propertyType->isNullable();
+        }
+
+        $constructorParameter = array_filter(
+            $constructorParameters,
+            fn (\ReflectionParameter $param) => $param->getName() === $propertyName
+        );
+        
+        $constructorParameter = reset($constructorParameter);
+        
+        return $constructorParameter->isOptional();
     }
 
     protected function getExportTypeName(ReflectionClass $reflection): string
@@ -84,8 +118,15 @@ class TypeGenerator
         return $classAttribute->newInstance()->typeName;
     }
 
-    protected function extractTypeFromPropertyType(Type $propertyType): string
+    /**
+     * Summary of extractTypeFromPropertyType
+     */
+    protected function extractTypeFromPropertyType(Type|false $propertyType): string
     {
+        if (! $propertyType) {
+            return 'unknown';
+        }
+
         $propertyBuiltInType = $propertyType->getBuiltinType();
         $propertyTypeString = $propertyType->getClassName() ?? $propertyBuiltInType;
 
@@ -108,7 +149,7 @@ class TypeGenerator
      */
     protected function extractObjectType(string $objectClass): string
     {
-        (new self($objectClass, $this->garbageCollection))->generate();
+        (new self($objectClass, $this->generatedTypes))->generate();
 
         return class_basename($objectClass);
     }
@@ -122,7 +163,7 @@ class TypeGenerator
     {
         $exportedType = class_basename($enumClass);
 
-        if ($this->garbageCollection->has($exportedType)) {
+        if ($this->generatedTypes->has($exportedType)) {
             return $exportedType;
         }
         
@@ -136,7 +177,7 @@ class TypeGenerator
 
         $exportsAsString .= "};";
 
-        $this->garbageCollection[$exportedType] = $exportsAsString;
+        $this->generatedTypes[$exportedType] = $exportsAsString;
 
         return $exportedType;
     }
