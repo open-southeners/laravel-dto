@@ -116,15 +116,15 @@ class DtoTypescriptGenerateCommand extends Command
     {
         $options = array_merge(
             $this->options(),
-            array_filter(
-                config('data-transfer-objects.types_generation', []),
-                fn ($configValue) => $configValue !== null
-            ),
             [
                 'output' => static::OPTION_DEFAULT_OUTPUT,
                 'source' => static::OPTION_DEFAULT_SOURCE,
                 'filename' => static::OPTION_DEFAULT_FILENAME,
-            ]
+            ],
+            array_filter(
+                config('data-transfer-objects.types_generation', []),
+                fn ($configValue) => $configValue !== null
+            )
         );
 
         $options['output'] = resource_path($options['output']);
