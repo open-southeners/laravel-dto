@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2023-10-13
+
+### Added
+
+- TypeScript `.d.ts` generation command with `--declarations` option
+
+### Changed
+
+- Default TypeScript types generation command options now have some of them on the config file
+
+### Fixed
+
+- Config file now is exposed to be published using `vendor:publish --provider="OpenSoutheners\\LaravelDto\\ServiceProvider"` or `vendor:publish --tag="config"` commands
+- Non typed properties when nullable or not while TypeScript types generation
+
 ## [2.0.1] - 2023-10-12
 
 ### Fixed
