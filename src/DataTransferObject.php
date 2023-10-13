@@ -153,6 +153,10 @@ abstract class DataTransferObject implements Arrayable
                 $propertyValue = $propertyValue->toArray();
             }
 
+            if ($propertyValue instanceof \stdClass) {
+                $propertyValue = (array) $propertyValue;
+            }
+
             $newPropertiesArr[Str::snake($property->name)] = $propertyValue;
         }
 
