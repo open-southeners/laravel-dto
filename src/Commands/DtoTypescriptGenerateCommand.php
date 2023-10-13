@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\DataTransferObject;
 use OpenSoutheners\LaravelDto\TypeGenerator;
@@ -73,15 +74,15 @@ class DtoTypescriptGenerateCommand extends Command
             return 3;
         }
 
-        $namespace = str_replace(DIRECTORY_SEPARATOR, '\\', Str::replaceFirst(app_path(), 'App', $sourceDirectory));
-
+        $namespace = App::getNamespace();
+        $namespace .= str_replace(DIRECTORY_SEPARATOR, "\\", Str::replaceFirst(App::path('/'), '', $sourceDirectory));
+        
         $dataTransferObjects = Collection::make((new Finder)->files()->in($sourceDirectory))
-            ->map(fn ($file) =>  implode('\\', [$namespace, $file->getBasename('.php')]))
-            ->filter(fn ($className) => class_exists($className) || is_a($className, DataTransferObject::class, true))
+            ->map(fn ($file) =>  implode("\\", [$namespace, $file->getBasename('.php')]))
             ->sort()
-            ->values()
+            ->filter(fn (string $className) => class_exists($className) && is_a($className, DataTransferObject::class, true))
             ->all();
-
+        
         $generatedTypesCollection = Collection::make([]);
 
         foreach ($dataTransferObjects as $dataTransferObject) {
@@ -128,7 +129,7 @@ class DtoTypescriptGenerateCommand extends Command
         );
 
         $options['output'] = resource_path($options['output']);
-        $options['source'] = app_path($options['source']);
+        $options['source'] = App::path($options['source']);
 
         return $options;
     }

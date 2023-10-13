@@ -37,7 +37,7 @@ class TypeGenerator
          * 
          * @var array<\ReflectionParameter> $constructorParameters
          */
-        $constructorParameters = $reflection->getConstructor()->getParameters();
+        $constructorParameters = $reflection->getConstructor() ? $reflection->getConstructor()->getParameters() : [];
 
         $normalisesPropertiesKeys = config('data-transfer-objects.normalise_properties', true);
         

@@ -5,11 +5,13 @@ namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDto\Attributes\AsType;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
 use OpenSoutheners\LaravelDto\DataTransferObject;
 use stdClass;
 
+#[AsType('UpdatePostFormData')]
 class UpdatePostWithRouteBindingData extends DataTransferObject implements ValidatedDataTransferObject
 {
     /**

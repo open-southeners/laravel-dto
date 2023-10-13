@@ -40,6 +40,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
+        
+        $app['config']->set('data-transfer-objects', include_once __DIR__.'/../../config/data-transfer-objects.php');
     }
 
     /**
