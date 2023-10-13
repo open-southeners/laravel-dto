@@ -17,7 +17,7 @@ class TypeGenerator
         'int' => 'number',
         'float' => 'number',
         'bool' => 'boolean',
-        '\stdClass' => 'object',
+        '\stdClass' => 'Record<string, unknown>',
     ];
 
     public function __construct(protected string $dataTransferObject, protected Collection $garbageCollection)
