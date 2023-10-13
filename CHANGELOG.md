@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2023-10-13
+
+### Fixed
+
+- Now `\stdClass` properties get properly serialised as multidimensional arrays
+
 ## [2.1.0] - 2023-10-13
 
 ### Added
