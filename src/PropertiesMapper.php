@@ -115,7 +115,7 @@ class PropertiesMapper
             $this->data[$key] = match (true) {
                 $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
                 is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
-                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
+                is_subclass_of($preferredTypeClass, BackedEnum::class) => $value instanceof $preferredTypeClass ? $value : $preferredTypeClass::tryFrom($value),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
                 $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
                 $preferredTypeClass === stdClass::class && Str::isJson($value) => json_decode($value),
