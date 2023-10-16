@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2023-10-16
+
+### Added 
+
+- `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` attribute to set default value
+- `#[WithDefaultValue(Authenticatable::class)]` will set as default value the authenticated user (`Auth::user()`)
+
 ## [2.1.1] - 2023-10-13
 
 ### Fixed
