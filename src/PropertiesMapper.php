@@ -5,18 +5,23 @@ namespace OpenSoutheners\LaravelDto;
 use BackedEnum;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use OpenSoutheners\LaravelDto\Attributes\BindModel;
+use OpenSoutheners\LaravelDto\Attributes\BindModelFromMorph;
 use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
+use ReflectionAttribute;
 use ReflectionClass;
 use stdClass;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
@@ -79,6 +84,8 @@ class PropertiesMapper
             }
 
             $preferredType = reset($propertyTypes);
+            $propertyTypesClasses = array_filter(array_map(fn (Type $type) => $type->getClassName(), $propertyTypes));
+            $propertyTypesModelClasses = array_filter($propertyTypesClasses, fn ($typeClass) => is_a($typeClass, Model::class, true));
             $preferredTypeClass = $preferredType->getClassName();
 
             /** @var \Illuminate\Support\Collection<\ReflectionAttribute> $propertyAttributes */
@@ -113,8 +120,8 @@ class PropertiesMapper
             }
 
             $this->data[$key] = match (true) {
-                $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value),
-                is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel($preferredTypeClass, $key, $value),
+                $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value, $propertyAttributes),
+                is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel(count($propertyTypesModelClasses) === 1 ? $preferredTypeClass : $propertyTypesClasses, $key, $value, $propertyAttributes),
                 is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
                 $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
@@ -141,7 +148,7 @@ class PropertiesMapper
      *
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
      */
-    protected function getModelInstance(string $model, mixed $id, string $usingAttribute = null, array $with = [])
+    protected function getModelInstance(string|array $model, mixed $id, string $usingAttribute = null, array $with = [])
     {
         if (is_a($id, $model)) {
             return empty($with) ? $id : $id->loadMissing($with);
@@ -192,31 +199,32 @@ class PropertiesMapper
     /**
      * Map data value into model instance.
      *
-     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>|array<class-string<\Illuminate\Database\Eloquent\Model>>  $modelClass
+     * @param  \Illuminate\Support\Collection<\ReflectionAttribute>  $attributes
      */
-    protected function mapIntoModel(string $modelClass, string $propertyKey, mixed $value)
+    protected function mapIntoModel(string|array $modelClass, string $propertyKey, mixed $value, Collection $attributes)
     {
-        $bindModelWithAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelWith::class);
-        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModelWith>|null $bindModelWithAttribute */
-        $bindModelWithAttribute = reset($bindModelWithAttribute);
+        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>|null $bindModelAttribute */
+        $bindModelAttribute = $attributes
+            ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === BindModel::class)
+            ->first();
 
-        $bindModelUsingAttribute = $this->reflector->getProperty($propertyKey)->getAttributes(BindModelUsing::class);
-        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModelUsing>|null $bindModelUsingAttribute */
-        $bindModelUsingAttribute = reset($bindModelUsingAttribute);
+        /** @var \OpenSoutheners\LaravelDto\Attributes\BindModel|null $bindModelAttribute */
+        $bindModelAttribute = $bindModelAttribute ? $bindModelAttribute->newInstance() : null;
 
-        $bindModelUsingAttribute = $bindModelUsingAttribute ? $bindModelUsingAttribute->newInstance()->attribute : null;
-
-        if (! $bindModelUsingAttribute && app(Request::class)->route($propertyKey)) {
-            $bindModelUsingAttribute = app(Request::class)->route()->bindingFieldFor($propertyKey) ?? (new $modelClass)->getRouteKeyName();
+        if (! $bindModelAttribute && is_array($modelClass)) {
+            $bindModelAttribute = new BindModel(morphKey: BindModel::getDefaultMorphKeyFrom($propertyKey));
         }
 
+        $model = $bindModelAttribute && is_array($modelClass)
+            ? $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass)
+            : $modelClass;
+
         return $this->getModelInstance(
-            $modelClass,
+            $model,
             $value,
-            $bindModelUsingAttribute,
-            $bindModelWithAttribute
-                ? (array) $bindModelWithAttribute->newInstance()->relationships
-                : []
+            $bindModelAttribute ? $bindModelAttribute->getBindingAttribute($propertyKey, $model) : null,
+            $bindModelAttribute ? $bindModelAttribute->getRelationshipsFor($model) : []
         );
     }
 
@@ -237,8 +245,9 @@ class PropertiesMapper
      *
      * @param  array<\Symfony\Component\PropertyInfo\Type>  $propertyTypes
      * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection|array|string  $value
+     * @param  \Illuminate\Support\Collection<\ReflectionAttribute>  $attributes
      */
-    protected function mapIntoCollection(array $propertyTypes, string $propertyKey, mixed $value)
+    protected function mapIntoCollection(array $propertyTypes, string $propertyKey, mixed $value, Collection $attributes)
     {
         if ($value instanceof Collection) {
             return $value instanceof EloquentCollection ? $value->toBase() : $value;
@@ -269,7 +278,17 @@ class PropertiesMapper
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
-                $collection = $this->mapIntoModel($preferredCollectionTypeClass, $propertyKey, $collection);
+                $collectionTypeModelClasses = array_filter(
+                    array_map(fn (Type $type) => $type->getClassName(), $collectionTypes),
+                    fn ($typeClass) => is_a($typeClass, Model::class, true)
+                );
+
+                $collection = $this->mapIntoModel(
+                    count($collectionTypeModelClasses) === 1 ? $preferredCollectionTypeClass : $collectionTypeModelClasses,
+                    $propertyKey,
+                    $collection,
+                    $attributes
+                );
             } else {
                 $collection = $collection->map(
                     fn ($item) => is_array($item)
