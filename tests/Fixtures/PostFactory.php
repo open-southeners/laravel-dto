@@ -24,8 +24,11 @@ class PostFactory extends Factory
      */
     public function definition()
     {
+        $title = $this->faker->title();
+
         return [
-            'title' => $this->faker->title(),
+            'title' => $title,
+            'slug' => Str::slug($title),
             'status' => PostStatus::Published->value,
         ];
     }

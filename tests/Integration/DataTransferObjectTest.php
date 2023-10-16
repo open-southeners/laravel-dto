@@ -6,12 +6,15 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
+use OpenSoutheners\LaravelDto\Tests\Fixtures\PostFactory;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
+use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostWithDefaultData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\User;
 
 class DataTransferObjectTest extends TestCase
@@ -60,6 +63,7 @@ class DataTransferObjectTest extends TestCase
         $post = Post::create([
             'id' => 1,
             'title' => 'Lorem ipsum',
+            'slug' => 'lorem-ipsum',
             'status' => PostStatus::Hidden->value,
         ]);
 
@@ -108,12 +112,14 @@ class DataTransferObjectTest extends TestCase
         $post = Post::create([
             'id' => 2,
             'title' => 'Hello ipsum',
+            'slug' => 'hello-ipsum',
             'status' => PostStatus::Hidden->value,
         ]);
 
         $parentPost = Post::create([
             'id' => 1,
             'title' => 'Lorem ipsum',
+            'slug' => 'lorem-ipsum',
             'status' => PostStatus::Hidden->value,
         ]);
 
@@ -125,6 +131,68 @@ class DataTransferObjectTest extends TestCase
 
         $this->assertTrue($data->post_id?->is($post));
         $this->assertTrue($data->parent?->is($parentPost));
+    }
+
+    public function testDataTransferObjectWithDefaultValueAttribute()
+    {
+        $user = User::create([
+            'email' => 'ruben@hello.com',
+            'name' => 'Ruben',
+        ]);
+
+        $this->actingAs($user);
+        
+        $fooBarPost = Post::factory()->create([
+            'title' => 'Foo bar',
+            'slug' => 'foo-bar',
+        ]);
+
+        $helloWorldPost = Post::factory()->create([
+            'title' => 'Hello world',
+            'slug' => 'hello-world',
+        ]);
+
+        Route::post('/posts/{post?}', function (UpdatePostWithDefaultData $data) {
+            return response()->json($data->toArray());
+        });
+
+        $response = $this->postJson('/posts', []);
+
+        $response->assertJsonFragment([
+            'author' => $user->toArray(),
+            'post' => $helloWorldPost->toArray(),
+        ]);
+    }
+
+    public function testDataTransferObjectWithDefaultValueAttributeGetsBoundWhenOneIsSent()
+    {
+        $user = User::create([
+            'email' => 'ruben@hello.com',
+            'name' => 'Ruben',
+        ]);
+
+        $this->actingAs($user);
+        
+        $fooBarPost = Post::factory()->create([
+            'title' => 'Foo bar',
+            'slug' => 'foo-bar',
+        ]);
+
+        $helloWorldPost = Post::factory()->create([
+            'title' => 'Hello world',
+            'slug' => 'hello-world',
+        ]);
+
+        Route::post('/posts/{post}', function (UpdatePostWithDefaultData $data) {
+            return response()->json($data->toArray());
+        });
+
+        $response = $this->postJson('/posts/foo-bar', []);
+
+        $response->assertJsonFragment([
+            'author' => $user->toArray(),
+            'post' => $fooBarPost->toArray(),
+        ]);
     }
 }
 

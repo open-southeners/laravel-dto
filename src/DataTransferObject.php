@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
+use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
@@ -143,7 +144,7 @@ abstract class DataTransferObject implements Arrayable
         $newPropertiesArr = [];
 
         foreach ($properties as $property) {
-            if (! $this->filled($property->name)) {
+            if (! $this->filled($property->name) && count($property->getAttributes(WithDefaultValue::class)) === 0) {
                 continue;
             }
 

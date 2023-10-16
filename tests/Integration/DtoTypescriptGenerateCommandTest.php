@@ -49,6 +49,7 @@ class DtoTypescriptGenerateCommandTest extends TestCase
             'export type UpdatePostData',
             'export type CreatePostData',
             'export type UpdatePostFormData',
+            "export type UpdatePostWithDefaultData = {\n\tpost_id?: string;\n\t",
         ], 'resources/js/types.ts');
     }
 }

@@ -23,7 +23,7 @@ class Post extends Model
      * @var array<string>
      */
     protected $visible = [
-        'id', 'title', 'status', 'tags',
+        'id', 'title', 'slug', 'status', 'tags',
     ];
 
     public function tags(): BelongsToMany

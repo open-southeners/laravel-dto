@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\AsType;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
+use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use ReflectionClass;
 use Symfony\Component\PropertyInfo\Type;
 
@@ -62,7 +63,7 @@ class TypeGenerator
             if (is_a($propertyTypeClass, Authenticatable::class, true)) {
                 continue;
             }
-            
+
             $propertyTypeAsString = $this->extractTypeFromPropertyType($propertyType);
             $propertyKeyAsString = $property->getName();
 
@@ -90,17 +91,21 @@ class TypeGenerator
      */
     protected function isNullableProperty(Type|false $propertyType, string $propertyName, array $constructorParameters): bool
     {
-        if ($propertyType) {
-            return $propertyType->isNullable();
-        }
-
         $constructorParameter = array_filter(
             $constructorParameters,
             fn (\ReflectionParameter $param) => $param->getName() === $propertyName
         );
-        
+
         $constructorParameter = reset($constructorParameter);
-        
+
+        if ($constructorParameter && count($constructorParameter->getAttributes(WithDefaultValue::class)) > 0) {
+            return true;
+        }
+
+        if ($propertyType) {
+            return $propertyType->isNullable();
+        }
+
         return $constructorParameter->isOptional();
     }
 

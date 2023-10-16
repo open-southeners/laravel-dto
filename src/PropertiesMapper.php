@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
 use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
+use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use ReflectionClass;
 use stdClass;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
@@ -68,6 +69,7 @@ class PropertiesMapper
         foreach ($propertyInfoExtractor->getProperties($this->dataClass) as $key) {
             $value = $propertiesData[$key] ?? null;
 
+            /** @var array<\Symfony\Component\PropertyInfo\Type> $propertyTypes */
             $propertyTypes = $propertyInfoExtractor->getTypes($this->dataClass, $key) ?? [];
 
             if (count($propertyTypes) === 0) {
@@ -79,9 +81,24 @@ class PropertiesMapper
             $preferredType = reset($propertyTypes);
             $preferredTypeClass = $preferredType->getClassName();
 
+            /** @var \Illuminate\Support\Collection<\ReflectionAttribute> $propertyAttributes */
+            $propertyAttributes = Collection::make(
+                $this->reflector->getProperty($key)->getAttributes()
+            );
+
+            $propertyAttributesDefaultValue = $propertyAttributes->filter(
+                fn (\ReflectionAttribute $attribute) => $attribute->getName() === WithDefaultValue::class
+            )->first();
+
+            $defaultValue = null;
+
+            if (! $value && $propertyAttributesDefaultValue) {
+                $defaultValue = $propertyAttributesDefaultValue->newInstance()->value;
+            }
+
             if (
                 ! $value
-                && $preferredTypeClass === Authenticatable::class
+                && ($preferredTypeClass === Authenticatable::class || $defaultValue === Authenticatable::class)
                 && app('auth')->check()
             ) {
                 $this->data[$key] = app('auth')->user();
@@ -89,6 +106,8 @@ class PropertiesMapper
                 continue;
             }
 
+            $value ??= $defaultValue;
+            
             if (is_null($value)) {
                 continue;
             }
@@ -246,8 +265,7 @@ class PropertiesMapper
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
 
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
-            ->filter()
-            ->values();
+            ->filter();
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
