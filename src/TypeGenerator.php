@@ -14,6 +14,11 @@ use Symfony\Component\PropertyInfo\Type;
 
 class TypeGenerator
 {
+    /**
+     * Map native types from PHP to TypeScript.
+     * 
+     * @var array<string, string>
+     */
     public const PHP_TO_TYPESCRIPT_VARIANT_TYPES = [
         'int' => 'number',
         'float' => 'number',
@@ -28,6 +33,9 @@ class TypeGenerator
         // 
     }
 
+    /**
+     * Generate TypeScript types from sent data transfer object.
+     */
     public function generate(): void
     {
         $reflection = new ReflectionClass($this->dataTransferObject);
@@ -87,6 +95,8 @@ class TypeGenerator
     }
 
     /**
+     * Determine wether the specified property is nullable.
+     * 
      * @param array<\ReflectionParameter> $constructorParameters
      */
     protected function isNullableProperty(Type|false $propertyType, string $propertyName, array $constructorParameters): bool
@@ -109,6 +119,9 @@ class TypeGenerator
         return $constructorParameter->isOptional();
     }
 
+    /**
+     * Get custom export type name if customised from attribute otherwise use class name.
+     */
     protected function getExportTypeName(ReflectionClass $reflection): string
     {
         /** @var array<\ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\AsType>> $classAttributes */
@@ -124,7 +137,7 @@ class TypeGenerator
     }
 
     /**
-     * Summary of extractTypeFromPropertyType
+     * Extract TypeScript types from PHP property type.
      */
     protected function extractTypeFromPropertyType(Type|false $propertyType): string
     {
@@ -144,13 +157,16 @@ class TypeGenerator
         };
     }
 
+    /**
+     * Handle conversion between native PHP and JavaScript types.
+     */
     protected function builtInTypeToTypeScript(string $identifier): string
     {
         return static::PHP_TO_TYPESCRIPT_VARIANT_TYPES[$identifier] ?? $identifier;
     }
 
     /**
-     * Summary of extractObjectType
+     * Generate types from non-generic object.
      */
     protected function extractObjectType(string $objectClass): string
     {
@@ -160,7 +176,7 @@ class TypeGenerator
     }
 
     /**
-     * Summary of extractEnumType
+     * Generate types from PHP native enum.
      * 
      * @see https://www.typescriptlang.org/docs/handbook/enums.html#objects-vs-enums
      */
@@ -188,7 +204,7 @@ class TypeGenerator
     }
 
     /**
-     * Summary of getCollectionType
+     * Generate types from collection.
      * 
      * @param array<\Symfony\Component\PropertyInfo\Type> $collectedTypes
      */
@@ -203,6 +219,11 @@ class TypeGenerator
         return $this->extractTypeFromPropertyType($collectedType);
     }
 
+    /**
+     * Generate types from Eloquent models bindings.
+     * 
+     * @param class-string<\Illuminate\Database\Eloquent\Model> $modelClass
+     */
     protected function extractModelType(string $modelClass): string
     {
         // TODO: Check type from Model's property's attribute or getRouteKeyName as fallback
