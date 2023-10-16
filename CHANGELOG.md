@@ -13,6 +13,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enums parsing when one is being passed to DTOs (thanks @coclav 🎉) [#6]
 
+## [3.0.0] - 2023-10-16
+
+### Added
+
+- Morph support for data transfer objects model properties and collection properties. For e.g: `public Film|Post $taggable, public string $taggableType`
+- Simplificated `OpenSoutheners\LaravelDto\Attributes\BindModel` attribute grouping all the model binding options.
+- Support for `OpenSoutheners\LaravelDto\Attributes\BindModel` attribute in morph properties, which can be also used to customise the type key name. For e.g. from the same example from above:
+
+```php
+#[BindModel(
+  using: [Post::class => 'slug'],
+  with: [Post::class => 'tags', Film::class => ['tags', 'posts']],
+  morphTypeKey: 'tagType'
+)]
+public Film|Post $taggable,
+public string $tagType
+```
+
+### Changed
+
+- **Replace all `#[BindModelUsing('attribute')]` to `#[BindModel(using: 'attribute')]` in your code (take in mind it must not be repeated under the same property)**
+- **Replace all `#[BindModelWith(['relation1', 'relation2'])]` to `#[BindModel(with: ['relation1', 'relation2'])]` in your code (take in mind it must not be repeated under the same property)**
+
 ## [2.2.0] - 2023-10-16
 
 ### Added 
