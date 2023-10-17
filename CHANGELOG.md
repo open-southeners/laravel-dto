@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2023-10-17
+
+### Fixed
+
+- Passing through with no type casting already matching typed properties (enums, objects, etc...)
+
 ## [2.2.1] - 2023-10-17
 
 ### Fixed
