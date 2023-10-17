@@ -132,7 +132,7 @@ class PropertiesMapper
 
             $this->data[$key] = match (true) {
                 $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value, $propertyAttributes),
-                is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel(count($propertyTypesModelClasses) === 1 ? $preferredTypeClass : $propertyTypesClasses, $key, $value, $propertyAttributes),
+                $preferredTypeClass === Model::class || is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel(count($propertyTypesModelClasses) === 1 ? $preferredTypeClass : $propertyTypesClasses, $key, $value, $propertyAttributes),
                 is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
                 $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
@@ -227,9 +227,11 @@ class PropertiesMapper
             $bindModelAttribute = new BindModel(morphKey: BindModel::getDefaultMorphKeyFrom($propertyKey));
         }
 
-        $model = $bindModelAttribute && is_array($modelClass)
-            ? $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass)
-            : $modelClass;
+        $model = $modelClass;
+        
+        if ($modelClass === Model::class || ($bindModelAttribute && is_array($modelClass))) {
+            $model = $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass === Model::class ? [] : $modelClass);
+        }
 
         return $this->getModelInstance(
             $model,

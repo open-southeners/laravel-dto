@@ -6,6 +6,7 @@ use Attribute;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class BindModel
@@ -57,10 +58,14 @@ class BindModel
 
     public function getMorphPropertyTypeKey(string $fromPropertyKey): string
     {
-        return $this->morphTypeKey ?? static::getDefaultMorphKeyFrom($fromPropertyKey);
+        if ($this->morphTypeKey) {
+            return Str::snake($this->morphTypeKey);
+        }
+
+        return static::getDefaultMorphKeyFrom($fromPropertyKey);
     }
 
-    public function getMorphModel(string $fromPropertyKey, array $properties, array $propertyTypeClasses): string
+    public function getMorphModel(string $fromPropertyKey, array $properties, array $propertyTypeClasses = []): string
     {
         $morphTypePropertyKey = $this->getMorphPropertyTypeKey($fromPropertyKey);
 
