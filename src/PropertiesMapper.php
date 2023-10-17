@@ -221,23 +221,30 @@ class PropertiesMapper
             ->first();
 
         /** @var \OpenSoutheners\LaravelDto\Attributes\BindModel|null $bindModelAttribute */
-        $bindModelAttribute = $bindModelAttribute ? $bindModelAttribute->newInstance() : null;
+        $bindModelAttribute = $bindModelAttribute
+            ? $bindModelAttribute->newInstance()
+            : new BindModel(morphTypeKey: BindModel::getDefaultMorphKeyFrom($propertyKey));
 
-        if (! $bindModelAttribute && is_array($modelClass)) {
-            $bindModelAttribute = new BindModel(morphKey: BindModel::getDefaultMorphKeyFrom($propertyKey));
+        $modelType = $modelClass;
+        $valueClass = null;
+
+        if (is_object($value) && ! $value instanceof Collection) {
+            $valueClass = get_class($value);
+            $modelType = is_array($modelClass) ? ($modelClass[$valueClass] ?? null) : $valueClass;
         }
 
-        $model = $modelClass;
-        
-        if ($modelClass === Model::class || ($bindModelAttribute && is_array($modelClass))) {
-            $model = $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass === Model::class ? [] : $modelClass);
+        if (
+            (! is_array($modelType) && $modelType === Model::class)
+            || ($bindModelAttribute && is_array($modelClass))
+        ) {
+            $modelType = $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass === Model::class ? [] : (array) $modelClass);
         }
 
         return $this->getModelInstance(
-            $model,
+            $modelType,
             $value,
-            $bindModelAttribute ? $bindModelAttribute->getBindingAttribute($propertyKey, $model) : null,
-            $bindModelAttribute ? $bindModelAttribute->getRelationshipsFor($model) : []
+            $bindModelAttribute ? $bindModelAttribute->getBindingAttribute($propertyKey, $modelType) : null,
+            $bindModelAttribute ? $bindModelAttribute->getRelationshipsFor($modelType) : []
         );
     }
 
