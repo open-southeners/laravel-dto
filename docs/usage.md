@@ -1,209 +1,26 @@
 ---
-description: Data transfer objects are useful to pass data, this package also brings some binding power to these properties.
+description: >-
+  Data transfer objects are useful to pass data, they can be used everywhere but
+  has some special uses in multiple places like controllers (including their
+  route bindings) and queued jobs.
 ---
 
 # Usage
 
-## Types of data
+## Usage as standalone
 
-You have as many types as Laravel provides out of the box, excluding native ones from PHP:
+{% hint style="warning" %}
+Remember that using the constructor like `new CreatePostData` is also a valid option but it will not map all the data.
+{% endhint %}
 
-- Collections from delimited lists (which can have nested types that also binds to these collections).
-- Arrays (called collections as well) from delimited lists, these also can have nested typed items to bind models, etc.
-- Models binding from **[simple binding](#mapping-models-binding)** to **[morph binding](#mapping-morph-multiple-model-type-binding)** using custom attributes for the binding and loading relationships.
-- Enums, backed (they need to have values) native enums from PHP.
-
-## Mapping models (binding)
-
-::: tip
-This model binding feature is also fully compatible with mapping collections. Check below (next section) to more information about this.
-:::
-
-When typing a variable with an Eloquent model class it will be mapped to this model querying the database when the instance is not passed through (using fromArray DTO method).
-
-### Mapping models with relationships loaded
-
-Sometimes is hard to have models loaded with some relationships when they are bound from requests bodies or routes parameters. This isn't a problem with DTOs.
+You can use DTOs on every place you want as the following:
 
 ```php
-use App\Models\Tag;
-use OpenSoutheners\LaravelDto\Attributes\BindModel;
-​final class CreatePostData extends DataTransferObject
-{
-    public function __construct(
-        public string $title,
-        public string $content,
-        #[BindModel(with: ['author', 'author.role'])]
-        public Tag $tag,
-    ) {
-      //
-    }
-}
-```
-
-### Mapping morph (multiple model type binding)
-
-In an example case when you have a relationship on your tags called taggable (a morph relationship) which can attach posts and films models, this is the way to deal with these on DTOs:
-
-```php
-use App\Models\Post;
-use App\Models\Film;
-
-final class CreateTagData extends DataTransferObject
-{
-    public function __construct(
-        public string $name,
-        public Post|Film $taggable,
-        public string $taggableType,
-    ) {
-        //
-    }
-}
-```
-
-#### Mapping morph models with relationships
-
-You can still use `BindModel` attribute on morph (multiple model types binding) with a little difference, you need to add keys which are the model classes so DTO mapping will know which relationship or attribute to use each time:
-
-```php
-use App\Models\Post;
-use App\Models\Film;
-use OpenSoutheners\LaravelDto\Attributes\BindModel;
-
-final class CreateTagData extends DataTransferObject
-{
-    public function __construct(
-        public string $name,
-        #[BindModel(using: [Post::class => 'slug'], with: [
-            Post::class => ['author', 'author.role'],
-            Film::class => 'reviews',
-        ])]
-        public Post|Film $taggable,
-        public string $taggableType,
-    ) {
-        //
-    }
-}
-```
-
-This way we are binding a `taggable` entity that when is a post will be using slug on this property, while films will use their defaults (`id`).
-
-When loading a post will be getting its `author` and author's `role`, if otherwise is a film it will only load its reviews.
-
-### Mapping collections
-
-We determine as collections arrays and Laravel's collections because of some particular mapping process we do to them, lets imagine we send this to our backend:
-
-```json
-{
-    "tags": "1,3,91"
-}
-```
-
-Using the following DTO:
-
-```php
-final class CreatePostData extends DataTransferObject
-{
-    public function __construct(
-        public array $tags
-    ) {
-        //
-    }
-}
-```
-
-We should get a array from this delimited list, now let's say we wanted to have integers, we could just use a docblock to help us.
-
-```php
-final class CreatePostData extends DataTransferObject
-{
-    /**
-     * @param int[] $tags
-     */
-    public function __construct(
-        public array $tags
-    ) {
-        //
-    }
-}
-```
-
-Now we've an array of integers and so our IDE can also help us when using this property. **But we're not limited to only native types, we can also use models! Sending a comma-delimited list of IDs and typing this properly.**
-
-Same will go for **Laravel collections**, just typing it properly like so:
-
-```php
-use Illuminate\Support\Collection;
-
-class CreatePostData extends DataTransferObject
-{
-  /**
-   * @param \Illuminate\Support\Collection<\App\Models\Tag> $tags
-   */
-  public function __construct(
-    public Collection $tags
-  ) {
-    //
-  }
-}
-```
-
-The example at the top will bind tag IDs or an array of IDs or tags model instances to a collection of tags instances.
-
-### Mapping with default values
-
-In case you want some default data mapped whenever you use `fromArray` you can use `withDefaults` like:
-
-```php
-final class CreatePostData extends DataTransferObject
-{
-  public function __construct(
-    public string $title,
-    public PostStatus $status,
-    public string|null $description = null,
-    public array $tags = []
-  ) {
-    //
-  }
-  
-  /**
-   * Add default data to data transfer object.
-   */
-  public function withDefaults(): void
-  {
-    // Filled will check wether description is on the request or property not null (depending on the context)
-    if (! $this->filled('description')) {
-      $this->description = 'Example of a description...';
-    }
-    
-    if (empty($this->tags)) {
-      $this->tags = ['generic', 'post'];
-    }
-  }
-}
-```
-
-#### Default value using attribute
-
-You can use PHP attributes instead, which simplifies it even more as you **only need to send the raw value without it being mapped**:
-
-```php
-use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
-
-final class CreatePostData extends DataTransferObject
-{
-  public function __construct(
-    public string $title,
-    public PostStatus $status,
-    #[WithDefaultValue('Example of a description...')]
-    public string|null $description = null,
-    #[WithDefaultValue(['generic', 'post'])]
-    public array $tags = []
-  ) {
-    //
-  }
-}
+$data = CreatePostData::fromArray([
+    'title' => 'Hello world',
+    'content' => 'hello world',
+    'tags' => '1,3'
+]);
 ```
 
 ## Usage in controllers
@@ -215,76 +32,134 @@ Now at the controller level you may do something like the following:
 
 public function store(CreatePostFormRequest $request)
 {
-  $post = $this->repository->create(
-    CreatePostData::fromRequest($request)
-  );
-  
-  // Response here...
+    $post = $this->repository->create(
+        CreatePostData::fromRequest($request)
+    );
+    
+    // Response here...
 }
 ```
 
-Or in case you're outside of a request context (HTTP call) you can use `fromArray`:
+This can be also be shorter by injecting directly the DTO like the following:
 
 ```php
-// CreatePostCommand.php
+// PostController.php
 
-$data = CreatePostData::fromArray([
-  'title' => 'Hello world',
-  'status' => PostStatus::Published->value,
-  'tags' => 'hello,world'
-]);
-
-$data->title; // Hello world
+public function store(CreatePostData $data)
+{
+    $post = $this->repository->create($data);
+    
+    // Response here...
+}
 ```
 
-### Controller binding resolution
+But then you might also think that your data must be validated, then you should read the following section.
 
-::: tip
-This way the data transfer object can also get route binding stuff like models. Check this whole section for further understanding on this feature.
-:::
+### Validating request data
 
-You can also save code by directly typing an parameter on your controller as a DTO class.
+To be able to send a `FormRequest` that will also run validation inside the DTO you may need to create a `ValidatedDataTransferObject`.&#x20;
 
-To do so, you might need to create a DTO with the `ValidatedDataTransferObject` interface, for that you have the command:
+The best way to do so is by running the following command:
 
 ```bash
 php artisan make:dto PostCreateData --request
 ```
 
-::: tip
-It can also convert validation rules from a `FormRequest` file to a DTO by sending the class path to the `--request` option.
-:::
+You can also specify the `FormRequest` class path so it will be injected directly:
 
-Then you need to fill the `request` method with the class string (full qualified class path):
+{% hint style="info" %}
+This way will try reading validation rules array from the `FormRequest` then add them as properties to the DTO class with their types and, if nullable, adding default value as null.
+{% endhint %}
+
+```bash
+php artisan make:dto PostCreateData --request="App\\Http\\Requests\\PostCreateFormRequest"
+```
+
+This way you will have something like the following:
 
 ```php
 <?php
 
 namespace App\DataTransferObjects;
 
-use App\Http\Requests\PostCreateFormRequest;
-use App\Models\Country;
-use Illuminate\Contracts\Auth\Authenticatable;
-use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
 use OpenSoutheners\LaravelDto\DataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
+use App\Http\Requests\PostCreateFormRequest;
 
 final class PostCreateData extends DataTransferObject implements ValidatedDataTransferObject
 {
-  public function __construct(
-    public string $title,
-    public string $content,
-    public Country $country,
-    public ?Authenticatable $author = null
-  ) {
-    //
-  }
-  
-  public static function request(): string
-  {
-    // This needs to be filled with the form request class
-    return PostCreateFormRequest::class;
-  }
+    public function __construct(
+        // You may have some properties here if your FormRequest rules contains anything...
+    ) {
+        //
+    }
+    
+    /**
+     * Get form request that this data transfer object is based from.
+     */
+    public static function request(): string
+    {
+        return PostCreateFormRequest::class;
+    }
 }
 ```
 
-Then you can use this same DTO in your controller, approaching a particular feature which is injecting the route binding of models directly to the data transfer object (check before and after on the controller logic to see the difference).
+Now whenever you use this DTO on your controllers sending your `FormRequest` instance or [injecting it directly in your controller methods](usage.md#usage-in-controllers) will run validation on the data provided.
+
+## Usage in queued jobs
+
+The usage on queued jobs is automatically performed by the package itself, it will serialise and deserialise all the data from the DTO when the queued job enters to the queues processor.
+
+Just adding an example to clarify its usage, having the following queued job:
+
+```php
+<?php
+ 
+namespace App\Jobs;
+
+use App\DataTransferObjects\PostCreateData;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+ 
+class ProcessPostCreation implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(protected PostCreateData $data)
+    {
+        //
+    }
+ 
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+        $this->data->post; // This will get the post model instance
+    }    
+}
+```
+
+Then sending this job to the queue with the data transfer object already created using `fromArray` or `fromRequest` methods or via controller binding:
+
+```php
+// Somewhere in your application...
+use App\DataTransferObjects\PostCreateData;
+use App\Jobs\ProcessPostCreation;
+
+dispatch(
+    new ProcessPostCreation(
+        PostCreateData::fromArray([
+            'title' => 'Hello World',
+            'content' => 'Lorem ipsum...',
+            'tags' => '1,5,8',
+        ])
+    )
+);
+```
