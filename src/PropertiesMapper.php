@@ -116,10 +116,23 @@ class PropertiesMapper
                 continue;
             }
 
+            if (
+                $preferredTypeClass
+                && ! is_array($value)
+                && ! $preferredType->isCollection()
+                && $preferredTypeClass !== Collection::class
+                && (is_a($value, $preferredTypeClass, true)
+                    || (is_object($value) && in_array(get_class($value), $propertyTypesClasses)))
+            ) {
+                $this->data[$key] = $value;
+
+                continue;
+            }
+
             $this->data[$key] = match (true) {
                 $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value, $propertyAttributes),
                 is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel(count($propertyTypesModelClasses) === 1 ? $preferredTypeClass : $propertyTypesClasses, $key, $value, $propertyAttributes),
-                is_subclass_of($preferredTypeClass, BackedEnum::class) => $value instanceof $preferredTypeClass ? $value : $preferredTypeClass::tryFrom($value),
+                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
                 $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
                 $preferredTypeClass === stdClass::class && Str::isJson($value) => json_decode($value),
