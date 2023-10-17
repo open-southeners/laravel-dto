@@ -121,6 +121,7 @@ class PropertiesMapper
                 && ! is_array($value)
                 && ! $preferredType->isCollection()
                 && $preferredTypeClass !== Collection::class
+                && ! is_a($preferredTypeClass, Model::class, true)
                 && (is_a($value, $preferredTypeClass, true)
                     || (is_object($value) && in_array(get_class($value), $propertyTypesClasses)))
             ) {
