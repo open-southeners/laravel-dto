@@ -25,12 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Passing through with no type casting already matching typed properties (enums, objects, etc...)
 
-## [2.2.1] - 2023-10-17
-
-### Fixed
-
-- Enums parsing when one is being passed to DTOs (thanks @coclav 🎉) [#6]
-
 ## [3.0.0] - 2023-10-16
 
 ### Added
@@ -53,6 +47,12 @@ public string $tagType
 
 - **Replace all `#[BindModelUsing('attribute')]` to `#[BindModel(using: 'attribute')]` in your code (take in mind it must not be repeated under the same property)**
 - **Replace all `#[BindModelWith(['relation1', 'relation2'])]` to `#[BindModel(with: ['relation1', 'relation2'])]` in your code (take in mind it must not be repeated under the same property)**
+
+## [2.2.1] - 2023-10-17
+
+### Fixed
+
+- Enums parsing when one is being passed to DTOs (thanks @coclav 🎉) [#6]
 
 ## [2.2.0] - 2023-10-16
 
