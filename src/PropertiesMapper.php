@@ -161,7 +161,7 @@ class PropertiesMapper
      *
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
      */
-    protected function getModelInstance(string|array $model, mixed $id, string $usingAttribute = null, array $with = [])
+    protected function getModelInstance(string $model, mixed $id, string $usingAttribute = null, array $with = [])
     {
         if (is_a($id, $model)) {
             return empty($with) ? $id : $id->loadMissing($with);
