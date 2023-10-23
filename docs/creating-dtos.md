@@ -262,7 +262,7 @@ final class CreatePostData extends DataTransferObject
    */
   public function withDefaults(): void
   {
-    // Filled will check wether description is on the request or property not null (depending on the context)
+    // Filled will check whether description is on the request or property not null (depending on the context)
     if (! $this->filled('description')) {
       $this->description = 'Example of a description...';
     }

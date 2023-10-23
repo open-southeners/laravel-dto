@@ -95,7 +95,7 @@ class TypeGenerator
     }
 
     /**
-     * Determine wether the specified property is nullable.
+     * Determine whether the specified property is nullable.
      * 
      * @param array<\ReflectionParameter> $constructorParameters
      */
