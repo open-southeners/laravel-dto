@@ -26,6 +26,8 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
 
+use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
+
 /**
  * The idea here is to leave DataTransferObject class without any properties that
  * could harm developers experience with the package.
@@ -282,11 +284,15 @@ class PropertiesMapper
             return $value;
         }
 
-        $collection = Collection::make(
-            is_array($value)
-                ? $value
-                : explode(',', $value)
-        );
+        if (is_json_structure($value)) {
+            $collection = Collection::make(json_decode($value, true));
+        } else {
+            $collection = Collection::make(
+                is_array($value)
+                    ? $value
+                    : explode(',', $value)
+            );
+        }
 
         $collectionTypes = $propertyType->getCollectionValueTypes();
 
