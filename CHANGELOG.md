@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1] - 2023-10-23
+
+### Fixed
+
+- Serialisation using old `BindModelUsing` instead of new `BindModel` attribute
+
 ## [3.1.0] - 2023-10-23
 
 ### Added
