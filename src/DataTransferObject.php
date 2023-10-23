@@ -11,8 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use OpenSoutheners\LaravelDto\Attributes\BindModelUsing;
-use OpenSoutheners\LaravelDto\Attributes\BindModelWith;
+use OpenSoutheners\LaravelDto\Attributes\BindModel;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use Symfony\Component\PropertyInfo\Type;
 
@@ -187,26 +186,22 @@ abstract class DataTransferObject implements Arrayable
             $key = $property->getName();
             $value = $property->getValue($this);
             
-            /** @var array<\ReflectionAttribute> $propertyAttributes */
-            $propertyAttributes = $property->getAttributes();
-            $propertyBindingAttributes = [
-                'using' => null,
-            ];
+            /** @var array<\ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>> $propertyModelBindingAttribute */
+            $propertyModelBindingAttribute = $property->getAttributes(BindModel::class);
+            $propertyModelBindingAttribute = reset($propertyModelBindingAttribute);
 
-            foreach ($propertyAttributes as $attribute) {
-                $attributeInstance = $attribute->newInstance();
-
-                if ($attributeInstance instanceof BindModelUsing) {
-                    $propertyBindingAttributes['using'] = $attributeInstance->attribute;
-                }
+            $propertyModelBindingAttributeName = null;
+            
+            if ($propertyModelBindingAttribute) {
+                $propertyModelBindingAttributeName = $propertyModelBindingAttribute->newInstance()->using;
             }
 
             $serialisableArr[$key] = match (true) {
-                $value instanceof Model => $value->getAttribute($propertyBindingAttributes['using'] ?? $value->getRouteKeyName()),
-                $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
+                $value instanceof Model => $value->getAttribute($propertyModelBindingAttributeName ?? $value->getRouteKeyName()),
+                $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyModelBindingAttributeName ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
                 $value instanceof Arrayable => $value->toArray(),
                 $value instanceof \Stringable => (string) $value,
-                is_array($value) => head($value) instanceof Model ? implode(',', array_map(fn (Model $model) => $model->getAttribute($propertyBindingAttributes['using'] ?? $model->getRouteKeyName()), $value)) : implode(',', $value),
+                is_array($value) => head($value) instanceof Model ? implode(',', array_map(fn (Model $model) => $model->getAttribute($propertyModelBindingAttributeName ?? $model->getRouteKeyName()), $value)) : implode(',', $value),
                 default => $value,
             };
         }
