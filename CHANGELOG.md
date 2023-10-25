@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.2] - 2023-10-25
+
+### Fixed
+
+- laravel-helpers package version constraints so it doesn't conflict with any other package that uses it in the same way (or even the root project)
+
 ## [3.1.1] - 2023-10-23
 
 ### Fixed
