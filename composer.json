@@ -28,7 +28,7 @@
         "php": "^8.1",
         "illuminate/http": "^9.0 || ^10.0",
         "illuminate/support": "^9.0 || ^10.0",
-        "open-southeners/laravel-helpers": "^0.12",
+        "open-southeners/laravel-helpers": "~0.12",
         "phpdocumentor/reflection-docblock": "^5.3",
         "symfony/property-info": "^6.0"
     },
