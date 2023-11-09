@@ -5,19 +5,17 @@ namespace OpenSoutheners\LaravelDto;
 use BackedEnum;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModel;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
+use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
 use ReflectionAttribute;
 use ReflectionClass;
 use stdClass;
@@ -25,8 +23,6 @@ use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
-
-use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
 
 /**
  * The idea here is to leave DataTransferObject class without any properties that
@@ -113,7 +109,7 @@ class PropertiesMapper
             }
 
             $value ??= $defaultValue;
-            
+
             if (is_null($value)) {
                 continue;
             }
@@ -135,7 +131,7 @@ class PropertiesMapper
             $this->data[$key] = match (true) {
                 $preferredType->isCollection() || $preferredTypeClass === Collection::class || $preferredTypeClass === EloquentCollection::class => $this->mapIntoCollection($propertyTypes, $key, $value, $propertyAttributes),
                 $preferredTypeClass === Model::class || is_subclass_of($preferredTypeClass, Model::class) => $this->mapIntoModel(count($propertyTypesModelClasses) === 1 ? $preferredTypeClass : $propertyTypesClasses, $key, $value, $propertyAttributes),
-                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value),
+                is_subclass_of($preferredTypeClass, BackedEnum::class) => $preferredTypeClass::tryFrom($value) ?? (count($propertyTypes) > 1 ? $value : null),
                 is_subclass_of($preferredTypeClass, CarbonInterface::class) || $preferredTypeClass === CarbonInterface::class => $this->mapIntoCarbonDate($preferredTypeClass, $value),
                 $preferredTypeClass === stdClass::class && is_array($value) => (object) $value,
                 $preferredTypeClass === stdClass::class && Str::isJson($value) => json_decode($value),
