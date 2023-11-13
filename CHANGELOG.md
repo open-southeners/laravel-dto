@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Models route binding now uses Eloquent's Model `resolveRouteBindingQuery` method
 - Models uses default routing key (`getRouteKeyName`) only when `BindModel` PHP attribute doesn't have the using argument
 
+### Fixed
+
+- Routes binding models through DTOs now are injected back to route parameters (to be reused in every other part of the software)
+
 ## [3.1.3] - 2023-11-09
 
 ### Fixed
