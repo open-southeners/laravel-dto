@@ -156,9 +156,15 @@ class PropertiesMapper
      * Get model instance(s) for model class and given IDs.
      *
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
+     * @param  string|int|\Illuminate\Database\Eloquent\Model  $id
+     * @param  string|\Illuminate\Database\Eloquent\Model  $usingAttribute
      */
-    protected function getModelInstance(string $model, mixed $id, string $usingAttribute = null, array $with = [])
+    protected function getModelInstance(string $model, mixed $id, mixed $usingAttribute, array $with)
     {
+        if (is_a($usingAttribute, $model)) {
+            return $usingAttribute;
+        }
+
         if (is_a($id, $model)) {
             return empty($with) ? $id : $id->loadMissing($with);
         }
@@ -235,15 +241,22 @@ class PropertiesMapper
             (! is_array($modelType) && $modelType === Model::class)
             || ($bindModelAttribute && is_array($modelClass))
         ) {
-            $modelType = $bindModelAttribute->getMorphModel($propertyKey, $this->properties, $modelClass === Model::class ? [] : (array) $modelClass);
+            $modelType = $bindModelAttribute->getMorphModel(
+                $propertyKey,
+                $this->properties,
+                $modelClass === Model::class ? [] : (array) $modelClass
+            );
         }
 
-        return $this->getModelInstance(
-            $modelType,
-            $value,
-            $bindModelAttribute ? $bindModelAttribute->getBindingAttribute($propertyKey, $modelType) : null,
-            $bindModelAttribute ? $bindModelAttribute->getRelationshipsFor($modelType) : []
-        );
+        $usingAttribute = null;
+        $with = [];
+
+        if ($bindModelAttribute) {
+            $with = $bindModelAttribute->getRelationshipsFor($modelType);
+            $usingAttribute = $bindModelAttribute->getBindingAttribute($propertyKey, $modelType, $with);
+        }
+
+        return $this->getModelInstance($modelType, $value, $usingAttribute, $with);
     }
 
     /**

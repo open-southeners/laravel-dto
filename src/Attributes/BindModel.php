@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class BindModel
 {
     public function __construct(
-        public string|array|null $using = null, 
+        public string|array|null $using = null,
         public string|array $with = [],
         public string|null $morphTypeKey = null
     ) {
@@ -24,13 +24,10 @@ class BindModel
         return "{$key}_type";
     }
 
-    /**
-     * L.
-     */
-    public function getBindingAttribute(string $key, string $type): string|array|null
+    public function getBindingAttribute(string $key, string $type, array $with)
     {
         $usingAttribute = $this->using;
-        
+
         if (is_array($usingAttribute)) {
             $typeModel = array_flip(Relation::morphMap())[$type];
 
@@ -40,11 +37,28 @@ class BindModel
         /** @var \Illuminate\Http\Request|null $request */
         $request = app(Request::class);
 
-        if (! $usingAttribute && $request && $request->route($key)) {
-            return $request->route()->bindingFieldFor($key);
+        if ($request && $request->route($key)) {
+            $resolvedInstance = $this->resolveBinding(
+                $type,
+                $request->route($key),
+                $usingAttribute ?? $request->route()->bindingFieldFor($key),
+                $with
+            )->firstOrFail();
+
+            $request->route()->setParameter($key, $resolvedInstance);
+
+            return $resolvedInstance;
         }
 
         return $usingAttribute;
+    }
+
+    protected function resolveBinding(string $model, mixed $value, mixed $field = null, array $with = [])
+    {
+        $modelInstance = new $model();
+
+        return $modelInstance->resolveRouteBindingQuery($modelInstance->newQuery(), $value, $field)
+            ->with($with);
     }
 
     public function getRelationshipsFor(string $type): array
@@ -79,11 +93,11 @@ class BindModel
         $modelModelClass = $morphMap[$type] ?? null;
 
         if (! $modelModelClass && count($propertyTypeClasses) > 0) {
-            $modelModelClass = array_filter($propertyTypeClasses, fn (string $class) => (new $class)->getMorphClass() === $type);
-            
+            $modelModelClass = array_filter($propertyTypeClasses, fn (string $class) => (new $class())->getMorphClass() === $type);
+
             $modelModelClass = reset($modelModelClass);
         }
-        
+
         if (! $modelModelClass) {
             throw new Exception('Morph type not found on relation map or within types.');
         }
