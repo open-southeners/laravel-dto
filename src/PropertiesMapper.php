@@ -156,7 +156,7 @@ class PropertiesMapper
      * Get model instance(s) for model class and given IDs.
      *
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
-     * @param  string|int|\Illuminate\Database\Eloquent\Model  $id
+     * @param  string|int|array|\Illuminate\Database\Eloquent\Model  $id
      * @param  string|\Illuminate\Database\Eloquent\Model  $usingAttribute
      */
     protected function getModelInstance(string $model, mixed $id, mixed $usingAttribute, array $with)
