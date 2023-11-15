@@ -37,7 +37,7 @@ class BindModel
         /** @var \Illuminate\Http\Request|null $request */
         $request = app(Request::class);
 
-        if ($request && $request->route($key)) {
+        if ($request && $request->route($key) && is_string($request->route($key))) {
             $resolvedInstance = $this->resolveBinding(
                 $type,
                 $request->route($key),
