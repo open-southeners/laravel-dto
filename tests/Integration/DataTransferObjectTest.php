@@ -11,7 +11,6 @@ use Illuminate\Validation\Rule;
 use Mockery;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\PostFactory;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
 use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostWithDefaultData;
@@ -141,7 +140,7 @@ class DataTransferObjectTest extends TestCase
         ]);
 
         $this->actingAs($user);
-        
+
         $fooBarPost = Post::factory()->create([
             'title' => 'Foo bar',
             'slug' => 'foo-bar',
@@ -172,7 +171,7 @@ class DataTransferObjectTest extends TestCase
         ]);
 
         $this->actingAs($user);
-        
+
         $fooBarPost = Post::factory()->create([
             'title' => 'Foo bar',
             'slug' => 'foo-bar',
