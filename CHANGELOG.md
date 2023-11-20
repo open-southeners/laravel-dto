@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.2] - 2023-11-20
+
+### Fixed
+
+- Route resolution on the model's logic (`resolveRouteBindingQuery`)
+
 ## [3.2.1] - 2023-11-15
 
 ### Fixed
