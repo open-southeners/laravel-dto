@@ -57,7 +57,7 @@ class BindModel
     {
         $modelInstance = new $model();
 
-        return $modelInstance->resolveRouteBindingQuery($modelInstance->newQuery(), $value, $field)
+        return $modelInstance->resolveRouteBindingQuery($modelInstance, $value, $field)
             ->with($with);
     }
 
