@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Mockery;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostData;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostWithDefaultData;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\User;
+use Workbench\App\DataTransferObjects\CreatePostData;
+use Workbench\App\DataTransferObjects\UpdatePostData;
+use Workbench\App\DataTransferObjects\UpdatePostWithDefaultData;
+use Workbench\App\Enums\PostStatus;
+use Workbench\App\Models\Post;
+use Workbench\App\Models\User;
+use Workbench\Database\Factories\PostFactory;
 
 class DataTransferObjectTest extends TestCase
 {
@@ -136,17 +137,18 @@ class DataTransferObjectTest extends TestCase
     {
         $user = User::create([
             'email' => 'ruben@hello.com',
+            'password' => '1234',
             'name' => 'Ruben',
         ]);
 
         $this->actingAs($user);
 
-        $fooBarPost = Post::factory()->create([
+        $fooBarPost = PostFactory::new()->create([
             'title' => 'Foo bar',
             'slug' => 'foo-bar',
         ]);
 
-        $helloWorldPost = Post::factory()->create([
+        $helloWorldPost = PostFactory::new()->create([
             'title' => 'Hello world',
             'slug' => 'hello-world',
         ]);
@@ -167,17 +169,18 @@ class DataTransferObjectTest extends TestCase
     {
         $user = User::create([
             'email' => 'ruben@hello.com',
+            'password' => '1234',
             'name' => 'Ruben',
         ]);
 
         $this->actingAs($user);
 
-        $fooBarPost = Post::factory()->create([
+        $fooBarPost = PostFactory::new()->create([
             'title' => 'Foo bar',
             'slug' => 'foo-bar',
         ]);
 
-        $helloWorldPost = Post::factory()->create([
+        $helloWorldPost = PostFactory::new()->create([
             'title' => 'Hello world',
             'slug' => 'hello-world',
         ]);
@@ -192,6 +195,16 @@ class DataTransferObjectTest extends TestCase
             'author' => $user->toArray(),
             'post' => $fooBarPost->toArray(),
         ]);
+    }
+
+    public function testNestedDataTransferObjectsGetsTheNestedAsObjectInstance()
+    {
+        $this->markTestIncomplete('Need to create nested actions/DTOs');
+    }
+
+    public function testDataTransferObjectDoesNotTakeRouteBoundStuff()
+    {
+        $this->markTestIncomplete('Need to create nested actions/DTOs');
     }
 }
 

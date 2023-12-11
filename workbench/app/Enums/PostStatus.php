@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\Enums;
 
 enum PostStatus: string
 {

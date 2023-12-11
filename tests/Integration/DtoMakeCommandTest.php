@@ -43,12 +43,12 @@ class DtoMakeCommandTest extends TestCase
     {
         $this->artisan('make:dto', [
             'name' => 'CreatePostData',
-            '--request' => 'OpenSoutheners\LaravelDto\Tests\Fixtures\PostCreateFormRequest',
+            '--request' => 'Workbench\App\Http\Requests\PostCreateFormRequest',
         ])->assertExitCode(0);
 
         $this->assertFileContains([
             'namespace App\DataTransferObjects;',
-            'use OpenSoutheners\LaravelDto\Tests\Fixtures\PostCreateFormRequest;',
+            'use Workbench\App\Http\Requests\PostCreateFormRequest;',
             'final class CreatePostData',
             'implements ValidatedDataTransferObject',
             'return PostCreateFormRequest::class;',

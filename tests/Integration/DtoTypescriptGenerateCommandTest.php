@@ -2,10 +2,9 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\App;
-use Mockery;
 use Orchestra\Testbench\Concerns\InteractsWithPublishedFiles;
+use function Orchestra\Testbench\workbench_path;
 
 class DtoTypescriptGenerateCommandTest extends TestCase
 {
@@ -22,23 +21,33 @@ class DtoTypescriptGenerateCommandTest extends TestCase
         config([
             'data-transfer-objects.types_generation' => [
                 'output' => 'js',
-                'source' => 'tests/Fixtures',
+                // 'source' => 'tests/Fixtures',
                 'filename' => 'types',
                 'declarations' => false,
-            ]
+            ],
         ]);
     }
 
     public function testDtoTypescriptGeneratesTypescriptTypesFile()
     {
-        App::shouldReceive('getNamespace')->once()->andReturn('OpenSoutheners\LaravelDto\Tests');
-        App::shouldReceive('path')->once()->withArgs(['tests/Fixtures'])->andReturn(str_replace('/Integration', '/Fixtures', __DIR__));
-        App::shouldReceive('path')->once()->withArgs(['/'])->andReturn(str_replace('/Integration', '', __DIR__));
+        App::shouldReceive('getNamespace')
+            ->once()
+            ->andReturn('Workbench\App');
+
+        App::shouldReceive('path')
+            ->once()
+            ->withArgs(['DataTransferObjects'])
+            ->andReturn(workbench_path('app/DataTransferObjects'));
+
+        App::shouldReceive('path')
+            ->once()
+            ->withArgs(['/'])
+            ->andReturn(workbench_path('app'));
 
         $command = $this->artisan('dto:typescript');
-        
+
         $command->expectsConfirmation('Are you sure you want to generate types from your data transfer objects?', 'yes');
-        
+
         $command->expectsOutput('Types file successfully generated at "'.resource_path('js/types.ts').'"');
 
         $exitCode = $command->run();

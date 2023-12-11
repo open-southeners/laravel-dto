@@ -1,13 +1,14 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\DataTransferObjects;
 
 use OpenSoutheners\LaravelDto\DataTransferObject;
+use Workbench\App\Models\Post;
 
 class UpdatePostData extends DataTransferObject
 {
     /**
-     * @param string[] $tags
+     * @param  string[]  $tags
      */
     public function __construct(
         public ?Post $post_id,

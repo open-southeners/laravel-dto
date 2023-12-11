@@ -8,9 +8,9 @@ use Illuminate\Container\Container;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\CreatePostData;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\PostStatus;
 use PHPUnit\Framework\TestCase;
+use Workbench\App\DataTransferObjects\CreatePostData;
+use Workbench\App\Enums\PostStatus;
 
 class DataTransferObjectTest extends TestCase
 {
@@ -91,12 +91,12 @@ class DataTransferObjectTest extends TestCase
     {
         $helloTag = [
             'name' => 'Hello world',
-            'slug' => 'hello-world'
+            'slug' => 'hello-world',
         ];
 
         $travelingTag = [
             'name' => 'Traveling guides',
-            'slug' => 'traveling-guides'
+            'slug' => 'traveling-guides',
         ];
 
         $data = CreatePostData::fromArray([
@@ -116,12 +116,12 @@ class DataTransferObjectTest extends TestCase
     {
         $rubenUser = [
             'name' => 'Rubén Robles',
-            'email' => 'ruben@hello.com'
+            'email' => 'ruben@hello.com',
         ];
 
         $taylorUser = [
             'name' => 'Taylor Otwell',
-            'email' => 'taylor@hello.com'
+            'email' => 'taylor@hello.com',
         ];
 
         $data = CreatePostData::fromArray([
@@ -146,7 +146,7 @@ class DataTransferObjectTest extends TestCase
             'tags' => '',
             'post_status' => PostStatus::Published->value,
             'published_at' => '2023-09-06 17:35:53',
-            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "dede", "type": "text"}]}]}'
+            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "dede", "type": "text"}]}]}',
         ]);
 
         $this->assertTrue($data->publishedAt instanceof Carbon);
@@ -159,7 +159,7 @@ class DataTransferObjectTest extends TestCase
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
-            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "hello world", "type": "text"}]}]}'
+            'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "hello world", "type": "text"}]}]}',
         ]);
 
         $this->assertTrue($data->content instanceof \stdClass);
@@ -173,22 +173,22 @@ class DataTransferObjectTest extends TestCase
             'tags' => '',
             'post_status' => PostStatus::Published->value,
             'content' => [
-                "type" => "doc",
-                "content" => [
+                'type' => 'doc',
+                'content' => [
                     [
-                        "type" => "paragraph",
-                        "attrs" => [
-                            "textAlign" => "left",
+                        'type' => 'paragraph',
+                        'attrs' => [
+                            'textAlign' => 'left',
                         ],
-                        "content" => [
+                        'content' => [
                             [
-                                "text" => "hello world",
-                                "type" => "text",
+                                'text' => 'hello world',
+                                'type' => 'text',
                             ],
                         ],
                     ],
                 ],
-            ]
+            ],
         ]);
 
         $this->assertTrue($data->content instanceof \stdClass);
@@ -204,7 +204,7 @@ class DataTransferObjectTest extends TestCase
             'dates' => [
                 '2023-09-06 17:35:53',
                 '2023-09-07 06:35:53',
-            ]
+            ],
         ]);
 
         $this->assertTrue($data->dates instanceof Collection);
@@ -222,7 +222,7 @@ class DataTransferObjectTest extends TestCase
             'dates' => Collection::make([
                 '2023-09-06 17:35:53',
                 '2023-09-07 06:35:53',
-            ])
+            ]),
         ]);
 
         $this->assertTrue($data->dates instanceof Collection);

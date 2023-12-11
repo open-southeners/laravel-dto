@@ -1,9 +1,8 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class PostUpdateFormRequest extends FormRequest
 {

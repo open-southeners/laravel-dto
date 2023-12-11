@@ -2,7 +2,6 @@
 
 namespace OpenSoutheners\LaravelDto;
 
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
@@ -176,22 +175,22 @@ abstract class DataTransferObject implements Arrayable
     public function __serialize(): array
     {
         $reflection = new \ReflectionClass($this);
-        
+
         /** @var array<\ReflectionProperty> $properties */
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
+
         $serialisableArr = [];
-        
+
         foreach ($properties as $property) {
             $key = $property->getName();
             $value = $property->getValue($this);
-            
+
             /** @var array<\ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>> $propertyModelBindingAttribute */
             $propertyModelBindingAttribute = $property->getAttributes(BindModel::class);
             $propertyModelBindingAttribute = reset($propertyModelBindingAttribute);
 
             $propertyModelBindingAttributeName = null;
-            
+
             if ($propertyModelBindingAttribute) {
                 $propertyModelBindingAttributeName = $propertyModelBindingAttribute->newInstance()->using;
             }

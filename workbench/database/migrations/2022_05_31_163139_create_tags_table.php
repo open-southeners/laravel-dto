@@ -3,8 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Tag;
+use Workbench\App\Models\Post;
+use Workbench\App\Models\Tag;
 
 return new class extends Migration
 {

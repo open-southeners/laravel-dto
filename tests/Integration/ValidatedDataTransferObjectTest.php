@@ -4,10 +4,9 @@ namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\UpdatePostWithRouteBindingData;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Post;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Tag;
+use Workbench\App\DataTransferObjects\UpdatePostWithRouteBindingData;
+use Workbench\Database\Factories\PostFactory;
+use Workbench\Database\Factories\TagFactory;
 
 class ValidatedDataTransferObjectTest extends TestCase
 {
@@ -18,16 +17,12 @@ class ValidatedDataTransferObjectTest extends TestCase
         parent::setUp();
 
         $this->withoutExceptionHandling();
-
-        Route::patch('post/{post}', function (UpdatePostWithRouteBindingData $data) {
-            return response()->json($data->toArray());
-        });
     }
 
     public function testValidatedDataTransferObjectGetsRouteBoundModel()
     {
-        $post = Post::factory()->hasAttached(
-            Tag::factory()->count(2)
+        $post = PostFactory::new()->hasAttached(
+            TagFactory::new()->count(2)
         )->create();
 
         $response = $this->patchJson('post/1', []);
@@ -39,10 +34,10 @@ class ValidatedDataTransferObjectTest extends TestCase
 
     public function testValidatedDataTransferObjectGetsValidatedOnlyParameters()
     {
-        Post::factory()->create();
+        PostFactory::new()->create();
 
-        $firstTag = Tag::factory()->create();
-        $secondTag = Tag::factory()->create();
+        $firstTag = TagFactory::new()->create();
+        $secondTag = TagFactory::new()->create();
 
         $response = $this->patchJson('post/1', [
             'tags' => '1,2',
@@ -69,8 +64,8 @@ class ValidatedDataTransferObjectTest extends TestCase
 
     public function testDataTransferObjectWithModelSentDoesLoadRelationshipIfMissing()
     {
-        $post = Post::factory()->hasAttached(
-            Tag::factory()->count(2)
+        $post = PostFactory::new()->hasAttached(
+            TagFactory::new()->count(2)
         )->create();
 
         $data = UpdatePostWithRouteBindingData::fromArray([
@@ -86,7 +81,7 @@ class ValidatedDataTransferObjectTest extends TestCase
 
     public function testDataTransferObjectWithModelSentDoesNotRunQueriesToFetchItAgain()
     {
-        $post = Post::factory()->make();
+        $post = PostFactory::new()->make();
 
         $post->setRelation('tags', []);
 
@@ -104,10 +99,10 @@ class ValidatedDataTransferObjectTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        Post::factory()->create();
+        PostFactory::new()->create();
 
-        Tag::factory()->create();
-        Tag::factory()->create();
+        TagFactory::new()->create();
+        TagFactory::new()->create();
 
         $data = UpdatePostWithRouteBindingData::fromArray([
             'post' => '1',

@@ -1,12 +1,13 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Workbench\App\Models\Tag;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\OpenSoutheners\LaravelDto\Tests\Fixtures\Tag>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Workbench\App\Models\Tag>
  */
 class TagFactory extends Factory
 {

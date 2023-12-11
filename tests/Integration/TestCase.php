@@ -2,18 +2,12 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use OpenSoutheners\LaravelDto\ServiceProvider;
-use OpenSoutheners\LaravelDto\Tests\Fixtures\Tag;
+use Orchestra\Testbench\Concerns\WithWorkbench;
+use function Orchestra\Testbench\workbench_path;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Factory::useNamespace('');
-    }
+    use WithWorkbench;
 
     /**
      * Define database migrations.
@@ -22,7 +16,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
      */
     protected function defineDatabaseMigrations()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database');
+        $this->loadLaravelMigrations();
+        $this->loadMigrationsFrom(workbench_path('database/migrations'));
     }
 
     /**
@@ -40,20 +35,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
-        
-        $app['config']->set('data-transfer-objects', include_once __DIR__.'/../../config/data-transfer-objects.php');
-    }
 
-    /**
-     * Get package providers.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<int, class-string>
-     */
-    protected function getPackageProviders($app)
-    {
-        return [
-            ServiceProvider::class,
-        ];
+        $app['config']->set('data-transfer-objects', include_once __DIR__.'/../../config/data-transfer-objects.php');
     }
 }

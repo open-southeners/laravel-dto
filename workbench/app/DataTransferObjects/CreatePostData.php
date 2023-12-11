@@ -1,19 +1,21 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\DataTransferObject;
 use stdClass;
+use Workbench\App\Enums\PostStatus;
+use Workbench\App\Models\Post;
 
 class CreatePostData extends DataTransferObject
 {
     public mixed $authorEmail = 'me@d8vjork.com';
 
     /**
-     * @param \Illuminate\Support\Collection<\Illuminate\Support\Carbon>|null $dates
+     * @param  \Illuminate\Support\Collection<\Illuminate\Support\Carbon>|null  $dates
      */
     public function __construct(
         public string $title,

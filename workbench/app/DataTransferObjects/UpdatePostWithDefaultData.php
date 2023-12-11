@@ -1,16 +1,19 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use OpenSoutheners\LaravelDto\Attributes\BindModel;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use OpenSoutheners\LaravelDto\DataTransferObject;
+use Workbench\App\Models\Post;
+use Workbench\App\Models\Tag;
+use Workbench\App\Models\User;
 
 class UpdatePostWithDefaultData extends DataTransferObject
 {
     /**
-     * @param string[] $tags
+     * @param  string[]  $tags
      */
     public function __construct(
         #[BindModel('slug')]

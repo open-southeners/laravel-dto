@@ -1,15 +1,15 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Fixtures;
+namespace Workbench\App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Tag extends Model
+class Post extends Model
 {
     use HasFactory;
-    
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -23,11 +23,11 @@ class Tag extends Model
      * @var array<string>
      */
     protected $visible = [
-        'id', 'name', 'slug',
+        'id', 'title', 'slug', 'status', 'tags',
     ];
 
-    public function post(): BelongsTo
+    public function tags(): BelongsToMany
     {
-        return $this->belongsTo(Post::class);
+        return $this->belongsToMany(Tag::class);
     }
 }
