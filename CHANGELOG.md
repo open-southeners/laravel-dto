@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.3] - 2023-12-14
+
+### Fixed
+
+- From request context with DTO's `filled` method not working properly
+
 ## [3.2.2] - 2023-11-20
 
 ### Fixed
