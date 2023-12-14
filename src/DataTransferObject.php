@@ -16,19 +16,23 @@ use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
 {
-    private bool $fromRequestContext = false;
+    private static bool $fromRequestContext = false;
 
     /**
      * Initialise data transfer object from a request.
      */
     public static function fromRequest(Request|FormRequest $request)
     {
-        return static::fromArray(array_merge(
-            is_object($request->route()) ? $request->route()->parameters() : [],
-            $request instanceof FormRequest
-                ? $request->validated()
-                : $request->all(),
-        ))->fromRequestContext();
+        static::$fromRequestContext = true;
+
+        return static::fromArray(
+            array_merge(
+                is_object($request->route()) ? $request->route()->parameters() : [],
+                $request instanceof FormRequest
+                    ? $request->validated()
+                    : $request->all(),
+            )
+        );
     }
 
     /**
@@ -55,7 +59,7 @@ abstract class DataTransferObject implements Arrayable
         $request = app(Request::class);
         $camelProperty = Str::camel($property);
 
-        if ($this->fromRequestContext && $request->route()) {
+        if (static::$fromRequestContext && $request->route()) {
             $requestHasProperty = $request->has(Str::snake($property))
                 ?: $request->has($property)
                 ?: $request->has($camelProperty);
@@ -160,16 +164,6 @@ abstract class DataTransferObject implements Arrayable
         }
 
         return $newPropertiesArr;
-    }
-
-    /**
-     * Data transfer object instanced from request context.
-     */
-    public function fromRequestContext(bool $value = true): self
-    {
-        $this->fromRequestContext = $value;
-
-        return $this;
     }
 
     public function __serialize(): array
