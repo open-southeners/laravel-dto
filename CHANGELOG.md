@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2024-03-13
+
+### Added
+
+- Laravel 11 support
+- Collected data transfer objects now mapped properly using `fromArray`
+
 ## [3.2.3] - 2023-12-14
 
 ### Fixed
