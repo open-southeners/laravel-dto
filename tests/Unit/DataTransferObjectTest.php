@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
 use Workbench\App\Enums\PostStatus;
 
@@ -228,5 +229,43 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue($data->dates instanceof Collection);
         $this->assertFalse($data->dates->first() instanceof Carbon);
         $this->assertIsString($data->dates->first());
+    }
+
+    public function testDataTransferObjectSentIntoAnotherAsCollectedWillBeMappedFromArray()
+    {
+        $data = CreateManyPostData::fromArray([
+            'posts' => [
+                [
+                    'title' => 'Hello world',
+                    'tags' => '',
+                    'post_status' => PostStatus::Published->value,
+                    'dates' => [
+                        '2023-09-06 17:35:53',
+                        '2023-09-07 06:35:53',
+                    ],
+                ],
+                [
+                    'title' => 'Foo bar',
+                    'tags' => '',
+                    'post_status' => PostStatus::Hidden->value,
+                    'dates' => [
+                        '2024-01-06 13:35:53',
+                        '2023-02-07 05:35:53',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertInstanceOf(Collection::class, $data->posts);
+
+        $this->assertInstanceOf(CreatePostData::class, $data->posts->first());
+        $this->assertEquals('Hello world', $data->posts->first()->title);
+        $this->assertInstanceOf(Collection::class, $data->posts->first()->dates);
+        $this->assertInstanceOf(Carbon::class, $data->posts->first()->dates->first());
+
+        $this->assertInstanceOf(CreatePostData::class, $data->posts->last());
+        $this->assertEquals('Foo bar', $data->posts->last()->title);
+        $this->assertInstanceOf(Collection::class, $data->posts->last()->dates);
+        $this->assertInstanceOf(Carbon::class, $data->posts->last()->dates->first());
     }
 }

@@ -15,7 +15,6 @@ use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDto\Attributes\BindModel;
 use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
-use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
 use ReflectionAttribute;
 use ReflectionClass;
 use stdClass;
@@ -23,6 +22,8 @@ use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
+
+use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
 
 /**
  * The idea here is to leave DataTransferObject class without any properties that
@@ -89,7 +90,7 @@ class PropertiesMapper
             );
 
             $propertyAttributesDefaultValue = $propertyAttributes->filter(
-                fn (\ReflectionAttribute $attribute) => $attribute->getName() === WithDefaultValue::class
+                fn (ReflectionAttribute $attribute) => $attribute->getName() === WithDefaultValue::class
             )->first();
 
             $defaultValue = null;
@@ -323,6 +324,10 @@ class PropertiesMapper
                     $propertyKey,
                     $collection,
                     $attributes
+                );
+            } elseif (is_subclass_of($preferredCollectionTypeClass, DataTransferObject::class)) {
+                $collection = $collection->map(
+                    fn ($item) => $preferredCollectionTypeClass::fromArray($item)
                 );
             } else {
                 $collection = $collection->map(
