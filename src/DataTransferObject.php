@@ -16,14 +16,12 @@ use Symfony\Component\PropertyInfo\Type;
 
 abstract class DataTransferObject implements Arrayable
 {
-    private static bool $fromRequestContext = false;
-
     /**
      * Initialise data transfer object from a request.
      */
     public static function fromRequest(Request|FormRequest $request)
     {
-        static::$fromRequestContext = true;
+        app()->bind('dto.context.booted', fn () => static::class);
 
         return static::fromArray(
             array_merge(
@@ -59,7 +57,7 @@ abstract class DataTransferObject implements Arrayable
         $request = app(Request::class);
         $camelProperty = Str::camel($property);
 
-        if (static::$fromRequestContext && $request->route()) {
+        if (app()->get('dto.context.booted') === static::class && $request->route()) {
             $requestHasProperty = $request->has(Str::snake($property))
                 ?: $request->has($property)
                 ?: $request->has($camelProperty);

@@ -30,6 +30,8 @@ class DataTransferObjectTest extends TestCase
         $mockedAuth->shouldReceive('check')->andReturn(false);
 
         Container::getInstance()->bind('auth', fn () => $mockedAuth);
+
+        Container::getInstance()->bind('dto.context.booted', fn () => '');
     }
 
     public function testDataTransferObjectFromArray()

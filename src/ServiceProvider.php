@@ -25,6 +25,8 @@ class ServiceProvider extends BaseServiceProvider
             $this->commands([DtoMakeCommand::class, DtoTypescriptGenerateCommand::class]);
         }
 
+        $this->app->bind('dto.context.booted', fn () => '');
+
         $this->app->beforeResolving(
             DataTransferObject::class,
             function ($dataClass, $parameters, $app) {
