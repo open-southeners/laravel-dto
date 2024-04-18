@@ -133,6 +133,24 @@ abstract class DataTransferObject implements Arrayable
     }
 
     /**
+     * Call dump on this data transfer object then return itself.
+     */
+    public function dump(): self
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Call dd on this data transfer object.
+     */
+    public function dd(): void
+    {
+        dd($this);
+    }
+
+    /**
      * Get the instance as an array.
      *
      * @return array<string, mixed>
