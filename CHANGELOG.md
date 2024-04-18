@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2024-04-18
+
+### Added
+
+- DataTransferObjects now have `dump` and `dd` methods
+
+### Fixed
+
+- `toArray` method not returning everything when DTOs where used on the request and later on reused. **Caveat: Only one DTO per request until v4 refactor**
+
 ## [3.3.0] - 2024-03-13
 
 ### Added
