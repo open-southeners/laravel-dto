@@ -79,26 +79,31 @@ class BindModel
         return static::getDefaultMorphKeyFrom($fromPropertyKey);
     }
 
-    public function getMorphModel(string $fromPropertyKey, array $properties, array $propertyTypeClasses = []): string
+    public function getMorphModel(string $fromPropertyKey, array $properties, array $propertyTypeClasses = []): array
     {
         $morphTypePropertyKey = $this->getMorphPropertyTypeKey($fromPropertyKey);
 
-        $type = $properties[$morphTypePropertyKey] ?? null;
+        $types = array_filter(explode(',', $properties[$morphTypePropertyKey] ?? ''));
 
-        if (! $type) {
+        if (count($types) === 0) {
             throw new Exception('Morph type must be specified to be able to bind a model from a morph.');
         }
 
         $morphMap = Relation::morphMap();
-        $modelModelClass = $morphMap[$type] ?? null;
+        $modelModelClass = array_filter(
+            array_map(
+                fn (string $morphType) => $morphMap[$morphType] ?? null,
+                $types
+            )
+        );
 
-        if (! $modelModelClass && count($propertyTypeClasses) > 0) {
+        if (count($modelModelClass) === 0 && count($propertyTypeClasses) > 0) {
             $modelModelClass = array_filter($propertyTypeClasses, fn (string $class) => (new $class())->getMorphClass() === $type);
 
             $modelModelClass = reset($modelModelClass);
         }
 
-        if (! $modelModelClass) {
+        if (count($modelModelClass) === 0) {
             throw new Exception('Morph type not found on relation map or within types.');
         }
 

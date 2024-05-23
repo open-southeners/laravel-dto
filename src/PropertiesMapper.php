@@ -249,15 +249,44 @@ class PropertiesMapper
             );
         }
 
+        if (! is_countable($modelType) || count($modelType) === 1) {
+            return $this->resolveIntoModelInstance(
+                $value,
+                ! is_countable($modelType) ? $modelType : $modelType[0],
+                $propertyKey,
+                $bindModelAttribute
+            );
+        }
+
+        return Collection::make(array_map(
+            function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
+                if (!is_null($valueB)) {
+                    $lastNonValue = $valueB;
+                }
+
+                return [$valueA, $valueB ?? $lastNonValue];
+            },
+            $value instanceof Collection ? $value->all() : (array) $value,
+            (array) $modelType
+        ))->mapToGroups(fn (array $value) => [$value[1] => $value[0]])->flatMap(fn (Collection $keys, string $model) =>
+            $this->resolveIntoModelInstance($keys, $model, $propertyKey, $bindModelAttribute)
+        );
+    }
+
+    /**
+     * Resolve model class strings and keys into instances.
+     */
+    protected function resolveIntoModelInstance(mixed $keys, string $modelClass, string $propertyKey, ?BindModel $bindingAttribute = null): mixed
+    {
         $usingAttribute = null;
         $with = [];
 
-        if ($bindModelAttribute) {
-            $with = $bindModelAttribute->getRelationshipsFor($modelType);
-            $usingAttribute = $bindModelAttribute->getBindingAttribute($propertyKey, $modelType, $with);
+        if ($bindingAttribute) {
+            $with = $bindingAttribute->getRelationshipsFor($modelClass);
+            $usingAttribute = $bindingAttribute->getBindingAttribute($propertyKey, $modelClass, $with);
         }
 
-        return $this->getModelInstance($modelType, $value, $usingAttribute, $with);
+        return $this->getModelInstance($modelClass, $keys, $usingAttribute, $with);
     }
 
     /**
