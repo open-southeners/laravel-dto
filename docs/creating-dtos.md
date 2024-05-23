@@ -119,6 +119,51 @@ final class CreateTagData extends DataTransferObject
 }
 ```
 
+Now we can send something like this from the frontend or API:
+
+```json
+{
+    "name": "Traveling",
+    "taggable_id": "1, 2, 3",
+    "taggable_type": "post"
+}
+```
+
+{% hint style="info" %}
+The following feature is available since v3.5 so make sure you use the latest version of this package.
+{% endhint %}
+
+In case you want to mix taggable types you can do so **changing the property type of `taggableType` from string to array** like so:
+
+<pre class="language-php"><code class="lang-php">use OpenSoutheners\LaravelDto\DataTransferObject;
+use App\Models\Post;
+use App\Models\Film;
+
+final class CreateTagData extends DataTransferObject
+{
+    public function __construct(
+        public string $name,
+        public Post|Film $taggable,
+        public <a data-footnote-ref href="#user-content-fn-1">array</a> $taggableType,
+    ) {
+        //
+    }
+}
+</code></pre>
+
+Having the one above we can do plenty combinations from the frontend or API:&#x20;
+
+```json
+{
+    "taggable_id": "1, 2, 3",
+    "taggable_type": "post, film, post"
+}
+```
+
+{% hint style="warning" %}
+In case we send more IDs than types the last type will be taken for all the IDs that are left alone.
+{% endhint %}
+
 #### Customise binding attribute
 
 In an example when you have slugs only in posts but not films entities you can add the following to determine which morph type will have its binding customised:
@@ -326,3 +371,5 @@ final class CreatePostData extends DataTransferObject
   }
 }
 ```
+
+[^1]: This must be changed to be able to receive multiple types and map them to an array
