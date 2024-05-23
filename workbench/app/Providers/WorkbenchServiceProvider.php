@@ -2,7 +2,9 @@
 
 namespace Workbench\App\Providers;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
+use Workbench\App\Models;
 
 class WorkbenchServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,11 @@ class WorkbenchServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Relation::enforceMorphMap([
+            'post' => Models\Post::class,
+            'tag' => Models\Tag::class,
+            'film' => Models\Film::class,
+            'user' => Models\User::class,
+        ]);
     }
 }

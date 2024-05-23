@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class Post extends Model
+class Film extends Model
 {
     use HasFactory;
 
@@ -23,7 +23,7 @@ class Post extends Model
      * @var array<string>
      */
     protected $visible = [
-        'id', 'title', 'slug', 'status', 'tags',
+        'id', 'title', 'year', 'about',
     ];
 
     public function tags(): MorphToMany

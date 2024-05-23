@@ -15,6 +15,8 @@ class TagUpdateFormRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
+            'taggable' => ['required', 'string'],
+            'taggable_type' => ['required', 'string'],
         ];
     }
 }

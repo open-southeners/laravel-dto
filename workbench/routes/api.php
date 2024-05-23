@@ -20,14 +20,8 @@ Route::patch('post/{post}', function (UpdatePostWithRouteBindingData $data) {
     return response()->json($data->toArray());
 })->middleware('api');
 
-Route::patch('post/{post}/tags', function (UpdatePostWithTags $data) {
-    $tagsData = $data->tags->map(fn ($tag) => UpdateTagData::fromArray([
-        'post' => $data->post,
-        'tag' => $tag,
-    ]));
-
+Route::patch('tags/{tag}', function (UpdateTagData $data) {
     return response()->json([
-        'tagsData' => $tagsData->toArray(),
         'data' => $data->toArray(),
     ]);
 })->middleware('api');

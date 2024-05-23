@@ -1,5 +1,6 @@
 providers:
   - OpenSoutheners\LaravelDto\ServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
   - workbench/database/migrations
@@ -8,7 +9,7 @@ migrations:
 #   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: '/'
+  start: "/"
   install: true
   discovers:
     web: true

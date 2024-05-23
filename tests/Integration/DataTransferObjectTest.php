@@ -13,9 +13,12 @@ use Workbench\App\DataTransferObjects\CreatePostData;
 use Workbench\App\DataTransferObjects\UpdatePostData;
 use Workbench\App\DataTransferObjects\UpdatePostWithDefaultData;
 use Workbench\App\Enums\PostStatus;
+use Workbench\App\Models\Film;
 use Workbench\App\Models\Post;
 use Workbench\App\Models\User;
+use Workbench\Database\Factories\FilmFactory;
 use Workbench\Database\Factories\PostFactory;
+use Workbench\Database\Factories\TagFactory;
 
 class DataTransferObjectTest extends TestCase
 {
@@ -194,6 +197,69 @@ class DataTransferObjectTest extends TestCase
         $response->assertJsonFragment([
             'author' => $user->toArray(),
             'post' => $fooBarPost->toArray(),
+        ]);
+    }
+
+    public function testDataTransferObjectWithMorphsGetsModelsBoundOfEachTypeSent()
+    {
+        $user = User::create([
+            'email' => 'ruben@hello.com',
+            'password' => '1234',
+            'name' => 'Ruben',
+        ]);
+
+        $this->actingAs($user);
+
+        $horrorTag = TagFactory::new()->create([
+            'name' => 'Horror',
+            'slug' => 'horror',
+        ]);
+
+        $fooBarPost = PostFactory::new()->create([
+            'title' => 'Foo bar',
+            'slug' => 'foo-bar',
+        ]);
+
+        $helloWorldPost = PostFactory::new()->create([
+            'title' => 'Hello world',
+            'slug' => 'hello-world',
+        ]);
+
+        $myFilm = FilmFactory::new()->create([
+            'title' => 'My Film',
+            'slug' => 'my-film',
+            'year' => 1997
+        ]);
+
+        $response = $this->patchJson('tags/1', [
+            'name' => 'Scary',
+            'taggable' => '1, 1, 2',
+            'taggable_type' => 'film, post',
+        ]);
+
+        $response->assertSuccessful();
+
+        $response->assertJsonCount(3, 'data.taggable');
+
+        $response->assertJsonFragment([
+            "id" => 1,
+            "title" => "My Film",
+            "year" => "1997",
+            "about" => null
+        ]);
+
+        $response->assertJsonFragment([
+            "id" => 1,
+            "title" => "Foo bar",
+            "slug" => "foo-bar",
+            "status" => "published"
+        ]);
+
+        $response->assertJsonFragment([
+            "id" => 2,
+            "title" => "Hello world",
+            "slug" => "hello-world",
+            "status" => "published"
         ]);
     }
 

@@ -4,7 +4,7 @@ namespace Workbench\App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Tag extends Model
 {
@@ -26,8 +26,13 @@ class Tag extends Model
         'id', 'name', 'slug',
     ];
 
-    public function post(): BelongsTo
+    public function posts(): MorphToMany
     {
-        return $this->belongsTo(Post::class);
+        return $this->morphedByMany(Post::class, 'taggable');
+    }
+
+    public function films(): MorphToMany
+    {
+        return $this->morphedByMany(Post::class, 'taggable');
     }
 }

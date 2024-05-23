@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Workbench\App\Models\Post;
-use Workbench\App\Models\Tag;
 
 return new class extends Migration
 {
@@ -15,17 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tags', function (Blueprint $table) {
+        Schema::create('films', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
             $table->string('slug')->unique();
-            $table->timestamps();
-        });
+            $table->string('year')->index();
+            $table->text('about')->nullable();
 
-        Schema::create('taggables', function (Blueprint $table) {
-            $table->id();
-            $table->foreignIdFor(Tag::class);
-            $table->morphs('taggable');
+            $table->timestamps();
         });
     }
 
@@ -36,7 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('posts_tags');
-        Schema::dropIfExists('tags');
+        Schema::dropIfExists('films');
     }
 };
