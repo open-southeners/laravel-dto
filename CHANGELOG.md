@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2024-05-23
+
+### Added
+
+- Improve model morph mapping sending multiple IDs and their matches types. [Documentation link](https://docs.opensoutheners.com/laravel-dto/creating-dtos#morph-binding)
+
 ## [3.4.0] - 2024-04-18
 
 ### Added
@@ -126,7 +132,7 @@ public string $tagType
 
 ## [2.2.0] - 2023-10-16
 
-### Added 
+### Added
 
 - `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` attribute to set default value
 - `#[WithDefaultValue(Authenticatable::class)]` will set as default value the authenticated user (`Auth::user()`)
@@ -264,7 +270,7 @@ public string $tagType
 
 ### Fixed
 
-- `make:dto --request` now fill request method properly 
+- `make:dto --request` now fill request method properly
 
 ## [1.8.1] - 2023-09-12
 
@@ -370,4 +376,4 @@ public string $tagType
 
 ### Added
 
-- Initial release! 
+- Initial release!
