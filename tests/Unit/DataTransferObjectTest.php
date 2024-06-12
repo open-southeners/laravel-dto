@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
 use Workbench\App\Enums\PostStatus;
@@ -269,5 +270,19 @@ class DataTransferObjectTest extends TestCase
         $this->assertEquals('Foo bar', $data->posts->last()->title);
         $this->assertInstanceOf(Collection::class, $data->posts->last()->dates);
         $this->assertInstanceOf(Carbon::class, $data->posts->last()->dates->first());
+    }
+
+    public function testDataTransferObjectRetainKeysFromNestedObjectsOrArrays()
+    {
+        $data = CreateComment::fromArray([
+            'content' => 'hello world',
+            'tags' => [
+                'hello' => 'world',
+                'foo' => 'bar'
+            ]
+        ]);
+
+        $this->assertArrayHasKey('hello', $data->tags);
+        $this->assertArrayHasKey('foo', $data->tags);
     }
 }

@@ -339,8 +339,7 @@ class PropertiesMapper
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
 
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
-            ->filter(fn($item) => !blank($item))
-            ->values();
+            ->filter(fn($item) => !blank($item));
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
