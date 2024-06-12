@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.2] - 2024-06-12
+
+### Fixed
+
+- Filtering on collections with not null data
+
 ## [3.5.1] - 2024-06-12
 
 ### Fixed
