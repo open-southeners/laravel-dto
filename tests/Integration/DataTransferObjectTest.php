@@ -234,6 +234,8 @@ class DataTransferObjectTest extends TestCase
         $response = $this->patchJson('tags/1', [
             'name' => 'Scary',
             'taggable' => '1, 1, 2',
+            // TODO: Fix mapping by slug
+            // 'taggable' => '1, foo-bar, hello-world',
             'taggable_type' => 'film, post',
         ]);
 
