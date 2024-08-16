@@ -23,7 +23,7 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
 
-use function OpenSoutheners\LaravelHelpers\Strings\is_json_structure;
+use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 
 /**
  * The idea here is to leave DataTransferObject class without any properties that
