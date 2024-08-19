@@ -6,10 +6,13 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
+use OpenSoutheners\ExtendedLaravel\Console\Concerns\OpensGeneratedFiles;
 
 #[AsCommand(name: 'make:dto')]
 class DtoMakeCommand extends GeneratorCommand
 {
+    use OpensGeneratedFiles;
+
     /**
      * The console command name.
      *
@@ -30,6 +33,18 @@ class DtoMakeCommand extends GeneratorCommand
      * @var string
      */
     protected $type = 'DataTransferObject';
+
+    /**
+     * Execute the console command.
+     *
+     * @return bool|null
+     *
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
+    public function handle()
+    {
+        return $this->openGeneratedAfter(fn () => parent::handle());
+    }
 
     /**
      * Get the stub file for the generator.
