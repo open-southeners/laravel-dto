@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2024-08-19
+
+### Added
+
+- Command `make:dto` now opens the file after is generated
+
+### Changed
+
+- `extended-php` dependency replaced with `extended-laravel` (required to use `OpensGeneratedFiles` trait on the `make:dto` command)
+
 ## [3.5.4] - 2024-08-16
 
 ### Changed
