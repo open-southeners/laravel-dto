@@ -37,15 +37,19 @@ class MapperTest extends TestCase
         $this->assertEquals($users->last()->email, $result->last()->email);
     }
 
-    public function test_map_multiple_numeric_ids_as_args_to_model_results_in_collection_of_model_instances()
+    public function test_map_array_of_numeric_ids_to_model_results_in_array_of_model_instances()
     {
         $users = UserFactory::new()->count(2)->create();
 
-        $result = map(1, 2)->to(User::class);
+        // A plain (non-assoc) array with no explicit `->through()` infers the
+        // 'array' through-class, so the result is a plain array of models
+        // rather than a DatabaseCollection.
+        $result = map([1, 2])->to(User::class);
 
-        $this->assertInstanceOf(DatabaseCollection::class, $result);
-        $this->assertEquals($users->first()->email, $result->first()->email);
-        $this->assertEquals($users->last()->email, $result->last()->email);
+        $this->assertIsArray($result);
+        $this->assertInstanceOf(User::class, $result[0]);
+        $this->assertEquals($users->first()->email, $result[0]->email);
+        $this->assertEquals($users->last()->email, $result[1]->email);
     }
 
     public function test_map_multiple_numeric_ids_to_model_through_base_collection_results_in_base_collection_of_model_instances()
@@ -101,12 +105,12 @@ class MapperTest extends TestCase
         $this->assertEquals($input['foo'], $result->foo);
     }
 
-    public function test_map_arrays_as_args_to_generic_object_results_in_collection_of_std_class_instances()
+    public function test_map_array_of_arrays_to_generic_object_results_in_collection_of_std_class_instances()
     {
         $firstObject = ['hello' => 'world', 'foo' => 'bar'];
         $secondObject = ['one' => 'first', 'two' => 'second'];
 
-        $result = map($firstObject, $secondObject)->through(Collection::class)->to(stdClass::class);
+        $result = map([$firstObject, $secondObject])->through(Collection::class)->to(stdClass::class);
 
         $this->assertTrue(get_class($result) === Collection::class);
         $this->assertEquals($firstObject['hello'], $result[0]->hello);
@@ -121,9 +125,9 @@ class MapperTest extends TestCase
         $this->assertTrue($result === PostStatus::Hidden);
     }
 
-    public function test_map_strings_as_args_to_backed_enum_in_collection_of_backed_enum_instances()
+    public function test_map_array_of_strings_to_backed_enum_in_collection_of_backed_enum_instances()
     {
-        $result = map('hidden', 'published')->through(Collection::class)->to(PostStatus::class);
+        $result = map(['hidden', 'published'])->through(Collection::class)->to(PostStatus::class);
 
         $this->assertTrue(get_class($result) === Collection::class);
         $this->assertTrue($result[0] === PostStatus::Hidden);
