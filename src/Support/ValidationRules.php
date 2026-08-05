@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
 use OpenSoutheners\LaravelDataMapper\Attributes\Inject;
-use OpenSoutheners\LaravelDataMapper\Contracts\MapeableObject;
+use OpenSoutheners\LaravelDataMapper\Contracts\MappableObject;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
@@ -16,7 +16,7 @@ use ReflectionClass;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
-class ValidationRules implements Arrayable, ArrayAccess, MapeableObject
+class ValidationRules implements Arrayable, ArrayAccess, MappableObject
 {
     private array $rules = [];
 
@@ -35,9 +35,9 @@ class ValidationRules implements Arrayable, ArrayAccess, MapeableObject
         return $this;
     }
 
-    public function mappingFrom(MappingValue $mappingValue): void
+    public function mappingFrom(MappingValue $mappingValue): mixed
     {
-        $mappingValue->data = $this->fromClass($mappingValue->data);
+        return $this->fromClass($mappingValue->data);
     }
 
     public function toArray(): array

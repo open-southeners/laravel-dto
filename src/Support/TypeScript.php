@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use OpenSoutheners\LaravelDataMapper\Attributes\AsType;
-use OpenSoutheners\LaravelDataMapper\Contracts\MapeableObject;
+use OpenSoutheners\LaravelDataMapper\Contracts\MappableObject;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionClass;
@@ -18,7 +18,7 @@ use Symfony\Component\TypeInfo\TypeIdentifier;
 use function OpenSoutheners\ExtendedPhp\Enums\enum_is_backed;
 use function OpenSoutheners\ExtendedPhp\Enums\is_enum;
 
-final class TypeScript implements MapeableObject, Stringable
+final class TypeScript implements MappableObject, Stringable
 {
     public function __construct(
         private array $script = [],
@@ -47,9 +47,9 @@ final class TypeScript implements MapeableObject, Stringable
         return $result;
     }
 
-    public function mappingFrom(MappingValue $mappingValue): void
+    public function mappingFrom(MappingValue $mappingValue): mixed
     {
-        $mappingValue->data = $this->fromClass($mappingValue->data);
+        return $this->fromClass($mappingValue->data);
     }
 
     public function fromClass(string $class): self
