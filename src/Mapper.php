@@ -2,33 +2,33 @@
 
 namespace OpenSoutheners\LaravelDataMapper;
 
-use ArrayAccess;
-use Countable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
-use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Conditionable;
+use OpenSoutheners\LaravelDataMapper\Exceptions\NoMapperFoundException;
 use ReflectionClass;
 use ReflectionProperty;
 
 final class Mapper
 {
     use Conditionable;
-    
+
     protected mixed $data;
 
     protected ?string $dataClass = null;
 
     protected ?string $throughClass = null;
 
+    protected ?ReflectionProperty $property = null;
+
+    protected ?string $path = null;
+
+    protected array $providedKeys = [];
+
     public function __construct(mixed $input)
     {
-        if ((is_array($input) || $input instanceof Countable) && count($input) === 1) {
-            $input = reset($input);
-        }
-
         if (is_object($input)) {
             $this->dataClass = get_class($input);
         }
@@ -74,6 +74,27 @@ final class Mapper
     }
 
     /**
+     * Carry nested mapping context (property and path) into the resulting mapping value.
+     */
+    public function withContext(?ReflectionProperty $property = null, ?string $path = null): static
+    {
+        $this->property = $property;
+        $this->path = $path;
+
+        return $this;
+    }
+
+    /**
+     * Set the normalised incoming keys provided for the current mapping.
+     */
+    public function withProvidedKeys(array $keys): static
+    {
+        $this->providedKeys = $keys;
+
+        return $this;
+    }
+
+    /**
      * @template T of object
      *
      * @param  class-string<T>  $output
@@ -82,34 +103,25 @@ final class Mapper
     public function to(?string $output = null)
     {
         $output ??= $this->dataClass;
-        
-        if (!$this->throughClass && (is_array($this->data) || $this->data instanceof Collection)) {
+
+        if (! $this->throughClass && (is_array($this->data) || $this->data instanceof Collection)) {
             $this->throughClass = is_array($this->data) ? 'array' : Collection::class;
         }
-        
+
         $mappingValue = new MappingValue(
             data: $this->data,
             objectClass: $output,
             collectClass: $this->throughClass,
+            property: $this->property,
+            path: $this->path,
+            providedKeys: $this->providedKeys,
         );
-        
-        $mapper = Collection::make(ServiceProvider::getMappers())
-            ->map(fn ($mapper) => ['mapper' => $mapper, 'score' => $mapper->score($mappingValue)])
-            ->sortByDesc('score')
-            // ->dd()
-            ->first();
-        
-        // dump($mappingValue);
-        // dump($mapper);
-        // if ($this->data instanceof Collection) {
-        //     return;
-        // }
-        // 
-        if (!$mapper || $mapper['score'] === 0) {
-            return $mappingValue->data;
+
+        $mapper = app(MapperRegistry::class)->resolveFor($mappingValue);
+
+        if (! $mapper) {
+            throw NoMapperFoundException::forValue($mappingValue);
         }
-        
-        $mapper = $mapper['mapper'];
 
         return $mapper($mappingValue);
     }

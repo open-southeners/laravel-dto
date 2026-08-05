@@ -2,24 +2,36 @@
 
 namespace OpenSoutheners\LaravelDataMapper;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
 use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
-use OpenSoutheners\LaravelDataMapper\Mappers;
 use ReflectionClass;
 
 class ServiceProvider extends BaseServiceProvider
 {
-    protected static $mappers = [
-        Mappers\MapeableObjectMapper::class,
-        Mappers\CollectionDataMapper::class,
-        Mappers\ModelDataMapper::class,
-        Mappers\CarbonDataMapper::class,
-        Mappers\BackedEnumDataMapper::class,
-        Mappers\GenericObjectDataMapper::class,
-        Mappers\ObjectDataMapper::class,
-    ];
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->app->singleton(MapperRegistry::class, function () {
+            $registry = new MapperRegistry;
+
+            $registry->register(Mappers\MappableObjectMapper::class, 100);
+            $registry->register(Mappers\CollectionDataMapper::class, 80);
+            $registry->register(Mappers\ModelDataMapper::class, 70);
+            $registry->register(Mappers\CarbonDataMapper::class, 60);
+            $registry->register(Mappers\BackedEnumDataMapper::class, 50);
+            $registry->register(Mappers\GenericObjectDataMapper::class, 40);
+            $registry->register(Mappers\ObjectDataMapper::class, 30);
+
+            return $registry;
+        });
+    }
 
     /**
      * Bootstrap any application services.
@@ -37,7 +49,7 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->beforeResolving(
             RouteTransferableObject::class,
             function ($dataClass, $parameters, $app) {
-                /** @var \Illuminate\Foundation\Application $app */
+                /** @var Application $app */
                 $app->scoped($dataClass, function () use ($dataClass, $app) {
                     $reflector = new ReflectionClass($dataClass);
 
@@ -53,31 +65,5 @@ class ServiceProvider extends BaseServiceProvider
 
         $this->app->instance(PropertyInfoExtractor::class, new PropertyInfoExtractor);
         $this->app->alias(PropertyInfoExtractor::class, 'propertyInfo');
-    }
-
-    /**
-     * Register new dynamic mappers.
-     */
-    public static function registerMapper(string|array $mapper, bool $replacing = false): void
-    {
-        $mappers = (array) $mapper;
-
-        static::$mappers = $replacing ? $mappers : array_merge(static::$mappers, $mapper);
-    }
-
-    /**
-     * Get dynamic mappers.
-     *
-     * @return array<Mappers\DataMapper>
-     */
-    public static function getMappers(): array
-    {
-        $mapperInstances = [];
-        
-        foreach (static::$mappers as $mapper) {
-            $mapperInstances[] = app()->make($mapper);
-        }
-        
-        return $mapperInstances;
     }
 }
