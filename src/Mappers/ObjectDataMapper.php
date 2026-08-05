@@ -21,21 +21,25 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ObjectDataMapper extends DataMapper
 {
-    public function assert(MappingValue $mappingValue): array
+    public function supports(MappingValue $mappingValue): bool
     {
-        if (is_a($mappingValue->objectClass, Collection::class, true) || is_a($mappingValue->objectClass, Model::class, true)) {
-            return [false];
+        if (! $mappingValue->objectClass) {
+            return false;
         }
-        
-        return [
-            $mappingValue->objectClass,
-            $mappingValue->objectClass !== stdClass::class && class_exists($mappingValue->objectClass) && (new ReflectionClass($mappingValue->objectClass))->isInstantiable(),
-            is_string($mappingValue->data) && is_json_structure($mappingValue->data),
-            is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data),
-        ];
+
+        if (is_a($mappingValue->objectClass, Collection::class, true) || is_a($mappingValue->objectClass, Model::class, true)) {
+            return false;
+        }
+
+        if ($mappingValue->objectClass === stdClass::class || ! class_exists($mappingValue->objectClass) || ! (new ReflectionClass($mappingValue->objectClass))->isInstantiable()) {
+            return false;
+        }
+
+        return (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data))
+            || (is_string($mappingValue->data) && is_json_structure($mappingValue->data));
     }
 
-    public function resolve(MappingValue $mappingValue): void
+    public function resolve(MappingValue $mappingValue): mixed
     {
         $class = new ReflectionClass($mappingValue->objectClass);
 
@@ -44,7 +48,7 @@ final class ObjectDataMapper extends DataMapper
         $mappingData = is_string($mappingValue->data) ? json_decode($mappingValue->data, true) : $mappingValue->data;
 
         $propertiesData = array_combine(
-            array_map(fn ($key) => $this->normalisePropertyKey($mappingValue, $key), array_keys($mappingData)),
+            array_map(fn ($key) => $this->normalisePropertyKey($class, $key), array_keys($mappingData)),
             array_values($mappingData)
         );
 
@@ -77,10 +81,13 @@ final class ObjectDataMapper extends DataMapper
                 $type = $type->getWrappedType();
             }
 
+            $path = ($mappingValue->path ? $mappingValue->path.'.' : '').$property->getName();
+
             if ($type instanceof Type\CollectionType) {
                 $collectionValueType = $type->getCollectionValueType();
-                
+
                 $data[$key] = map($value)
+                    ->withContext($property, $path)
                     ->through((string) $unwrappedType)
                     ->to((string) $collectionValueType);
 
@@ -88,21 +95,25 @@ final class ObjectDataMapper extends DataMapper
             }
 
             $data[$key] = match (true) {
-                $type instanceof Type\ObjectType => map($value)->to((string) $type),
+                $type instanceof Type\ObjectType => map($value)
+                    ->withContext($property, $path)
+                    ->when(
+                        is_array($value) && Arr::isAssoc($value),
+                        fn ($mapper) => $mapper->withProvidedKeys(array_keys($value))
+                    )
+                    ->to((string) $type),
                 default => $value,
             };
         }
 
-        $mappingValue->data = new $mappingValue->objectClass(...$data);
+        return new $mappingValue->objectClass(...$data);
     }
 
     /**
      * Normalise property key using camel case or original.
      */
-    protected function normalisePropertyKey(MappingValue $mappingValue, string $key): ?string
+    protected function normalisePropertyKey(ReflectionClass $class, string $key): ?string
     {
-        $class = new ReflectionClass($mappingValue->objectClass);
-
         $normaliseProperty = count($class->getAttributes(NormaliseProperties::class)) > 0
             ?: (app('config')->get('data-mapper.normalise_properties') ?? true);
 
@@ -117,8 +128,8 @@ final class ObjectDataMapper extends DataMapper
         $camelKey = Str::camel($key);
 
         return match (true) {
-            property_exists($mappingValue->objectClass, $key) => $key,
-            property_exists($mappingValue->objectClass, $camelKey) => $camelKey,
+            property_exists($class->getName(), $key) => $key,
+            property_exists($class->getName(), $camelKey) => $camelKey,
             default => null
         };
     }

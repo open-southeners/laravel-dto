@@ -16,18 +16,16 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ModelDataMapper extends DataMapper
 {
-    public function assert(MappingValue $mappingValue): array
+    public function supports(MappingValue $mappingValue): bool
     {
-        return [
-            is_array($mappingValue->originalData) || is_string($mappingValue->originalData) || is_int($mappingValue->originalData),
-            is_a($mappingValue->objectClass, Model::class, true),
-        ];
+        return is_a($mappingValue->objectClass, Model::class, true)
+            && (is_array($mappingValue->data) || is_string($mappingValue->data) || is_int($mappingValue->data));
     }
 
     /**
-     * Resolve mapper that runs once assert returns true.
+     * Resolve mapper that runs once supports returns true.
      */
-    public function resolve(MappingValue $mappingValue): void
+    public function resolve(MappingValue $mappingValue): mixed
     {
         if (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data)) {
             /** @var Model $modelInstance */
@@ -49,27 +47,29 @@ final class ModelDataMapper extends DataMapper
                 $modelInstance->fill([$key => $value]);
             }
 
-            $mappingValue->data = $modelInstance;
-
-            return;
+            return $modelInstance;
         }
 
-        if (is_string($mappingValue->data) && str_contains($mappingValue->data, ',')) {
-            $mappingValue->data = array_filter(explode(',', $mappingValue->data));
+        $data = $mappingValue->data;
+
+        if (is_string($data) && str_contains($data, ',')) {
+            $data = array_filter(explode(',', $data));
         }
-        
-        $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->objectClass);
+
+        $data = $this->resolveIntoModelInstance($data, $mappingValue->objectClass);
 
         if ($mappingValue->collectClass === Collection::class) {
-            $mappingValue->data = $mappingValue->data instanceof DatabaseCollection
-                ? $mappingValue->data->toBase()
-                : Collection::make($mappingValue->data);
+            $data = $data instanceof DatabaseCollection
+                ? $data->toBase()
+                : Collection::make($data);
         }
-        
+
         if ($mappingValue->collectClass === 'array') {
-            $mappingValue->data = $mappingValue->data->all();
+            $data = $data->all();
         }
-        
+
+        return $data;
+
         // TODO: Move to ObjectDataMapper
         // if (count($mappingValue->types) <= 1) {
         //     $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->objectClass);

@@ -10,22 +10,19 @@ use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 final class CarbonDataMapper extends DataMapper
 {
-    public function assert(MappingValue $mappingValue): array
+    public function supports(MappingValue $mappingValue): bool
     {
-        return [
-            is_a($mappingValue->objectClass, CarbonInterface::class, true),
-            in_array(gettype($mappingValue->data), ['string', 'integer'], true),
-            is_iterable($mappingValue->data),
-        ];
+        return is_a($mappingValue->objectClass, CarbonInterface::class, true)
+            && (is_string($mappingValue->data) || is_int($mappingValue->data) || is_iterable($mappingValue->data));
     }
 
-    public function resolve(MappingValue $mappingValue): void
+    public function resolve(MappingValue $mappingValue): mixed
     {
-        $mappingValue->data = is_array($mappingValue->data) || $mappingValue->data instanceof Collection
+        return is_array($mappingValue->data) || $mappingValue->data instanceof Collection
             ? Collection::make($mappingValue->data)->map(fn ($item) => $this->resolveCarbon($item, $mappingValue->objectClass))
             : $this->resolveCarbon($mappingValue->data, $mappingValue->objectClass);
     }
-    
+
     private function resolveCarbon($value, string $objectClass): CarbonInterface
     {
         $carbonObject = match (true) {
@@ -36,7 +33,7 @@ final class CarbonDataMapper extends DataMapper
         if ($objectClass === CarbonImmutable::class) {
             return $carbonObject->toImmutable();
         }
-        
+
         return $carbonObject;
     }
 }
