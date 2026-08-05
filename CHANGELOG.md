@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Mapper registry**: custom mappers are now registered on the `MapperRegistry` container singleton with an explicit priority (`register(MyMapper::class, priority: 100)`), and higher-priority mappers win over built-ins for the same input
+- `MappingResolved` event dispatched on every mapping resolution, carrying the winning mapper class and the mapping context — replaces the previous debug logging
+- Mapping context now carries the target property, a dot-notation `path` (e.g. `tags.2`) for nested mappings, and the set of provided input keys
+
+### Changed
+
+- Mapper selection is now deterministic: the first registered mapper (by descending priority) whose `supports()` check passes handles the value — replacing the previous assertion-scoring system, so the same input and target class always resolve to the same mapper
+- `map()` now takes a single argument; pass multiple values as an array (`map([1, 2])` instead of `map(1, 2)`), and single-element arrays are no longer unwrapped implicitly
+- `mappingFrom()` on mappable objects now returns the mapping result instead of mutating the mapping value
+- `MapeableObject` interface renamed to `MappableObject`
+
+### Fixed
+
+- Mapping a value no mapper can handle now throws `NoMapperFoundException` (with the input type and target class in the message) instead of silently returning the input unmapped
+- Date mapping to `Carbon`/`CarbonImmutable` no longer competes against unrelated mappers due to contradictory internal assertions
+
 ## [4.0.0] - 2025-06-08
 
 ### Added
