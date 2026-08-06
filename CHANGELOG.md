@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Mapper registry**: custom mappers are now registered on the `MapperRegistry` container singleton with an explicit priority (`register(MyMapper::class, priority: 100)`), and higher-priority mappers win over built-ins for the same input
 - `MappingResolved` event dispatched on every mapping resolution, carrying the winning mapper class and the mapping context — replaces the previous debug logging
 - Mapping context now carries the target property, a dot-notation `path` (e.g. `tags.2`) for nested mappings, and the set of provided input keys
+- `map_arrays_through` config option: set it to `Collection::class` to get collections instead of plain arrays when mapping array input without an explicit `->through()`; inline `->through()` always takes precedence
 
 ### Changed
 

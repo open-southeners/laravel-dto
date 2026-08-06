@@ -52,6 +52,32 @@ class MapperTest extends TestCase
         $this->assertEquals($users->last()->email, $result[1]->email);
     }
 
+    public function test_map_array_configured_through_collection_results_in_collection_of_model_instances()
+    {
+        $this->app['config']->set('data-mapper.map_arrays_through', Collection::class);
+
+        $users = UserFactory::new()->count(2)->create();
+
+        $result = map([1, 2])->to(User::class);
+
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertEquals($users->first()->email, $result->first()->email);
+        $this->assertEquals($users->last()->email, $result->last()->email);
+    }
+
+    public function test_map_array_through_array_overrides_configured_collection_default()
+    {
+        $this->app['config']->set('data-mapper.map_arrays_through', Collection::class);
+
+        $users = UserFactory::new()->count(2)->create();
+
+        $result = map([1, 2])->through('array')->to(User::class);
+
+        $this->assertIsArray($result);
+        $this->assertEquals($users->first()->email, $result[0]->email);
+        $this->assertEquals($users->last()->email, $result[1]->email);
+    }
+
     public function test_map_multiple_numeric_ids_to_model_through_base_collection_results_in_base_collection_of_model_instances()
     {
         $users = UserFactory::new()->count(2)->create();

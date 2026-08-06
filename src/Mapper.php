@@ -105,7 +105,9 @@ final class Mapper
         $output ??= $this->dataClass;
 
         if (! $this->throughClass && (is_array($this->data) || $this->data instanceof Collection)) {
-            $this->throughClass = is_array($this->data) ? 'array' : Collection::class;
+            $this->throughClass = is_array($this->data)
+                ? (app('config')->get('data-mapper.map_arrays_through') ?? 'array')
+                : Collection::class;
         }
 
         $mappingValue = new MappingValue(

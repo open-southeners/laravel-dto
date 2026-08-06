@@ -10,6 +10,14 @@ return [
     'normalise_properties' => true,
 
     /**
+     * Default wrapping for array inputs when no ->through() is given.
+     *
+     * 'array' returns plain PHP arrays, \Illuminate\Support\Collection::class
+     * returns collections. Overridable per-mapping with ->through().
+     */
+    'map_arrays_through' => 'array',
+
+    /**
      * Types generator config, only used as defaults when no options
      * are passed to the command.
      */
