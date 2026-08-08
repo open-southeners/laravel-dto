@@ -203,7 +203,7 @@ final class TypeScript implements MappableObject, Stringable
 
         $this->fromClass($class);
 
-        return array_key_last($this->script);
+        return $this->typeName($class);
     }
 
     private function fromBuiltinType(Type\BuiltinType $type): string
