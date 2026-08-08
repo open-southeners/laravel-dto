@@ -28,11 +28,11 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/http": "^11.0 || ^12.0",
-        "illuminate/support": "^11.0 || ^12.0",
+        "illuminate/http": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
         "open-southeners/extended-laravel": "~0.4",
         "phpdocumentor/reflection-docblock": "^5.3",
-        "symfony/property-info": "^7.3"
+        "symfony/property-info": "^7.3 || ^8.0"
     },
     "require-dev": {
         "larastan/larastan": "^3.0",

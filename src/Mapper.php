@@ -104,7 +104,13 @@ final class Mapper
     {
         $output ??= $this->dataClass;
 
-        if (! $this->throughClass && (is_array($this->data) || $this->data instanceof Collection)) {
+        // Through-class inference is a default for bare array/Collection input;
+        // it must never contradict an explicitly Collection-typed target.
+        if (
+            ! $this->throughClass
+            && (is_array($this->data) || $this->data instanceof Collection)
+            && ($output === null || ! is_a($output, Collection::class, true))
+        ) {
             $this->throughClass = is_array($this->data)
                 ? (app('config')->get('data-mapper.map_arrays_through') ?? 'array')
                 : Collection::class;

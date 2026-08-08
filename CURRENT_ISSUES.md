@@ -10,6 +10,16 @@
 - **What**: After the supports()/priority refactor, `CollectionDataMapper` correctly declines already-`Collection` data (prevents infinite self-recursion), but `ObjectDataMapper` only accepts assoc arrays / JSON objects. A `Collection` of assoc arrays arriving at an object-typed mapping position (e.g. an `array<SomeDto>` property fed through the collection branch) raises `NoMapperFoundException` on the per-item pass. Not exercised by current tests.
 - **Fix**: Decide whether `ObjectDataMapper::supports()` should accept `Collection` data and map each item (as `GenericObjectDataMapper`/`CarbonDataMapper`/`BackedEnumDataMapper` do), or whether `CollectionDataMapper::resolve()` should map items itself before recursion.
 
+## Instance passthrough regression (v3 → v4)
+- **Where**: `src/Mapper.php` (`__construct`/`takeDataFrom` destructure objects before selection), `src/Mappers/ObjectDataMapper.php` (`resolve()` nested mapping), `src/Mappers/ModelDataMapper.php` (`supports()` only takes array|string|int)
+- **What**: v3 kept values that were already instances of the target type (`PropertiesMapper.php:118-130` on the 3.x branch). v4 lost this: `map($user)->to(User::class)` throws `NoMapperFoundException`; re-mapping a hydrated DTO destructures enum properties into `['name' => …, 'value' => …]` and fails; an already-`Carbon` property destructures to an empty array. Blocks any object→object re-mapping and complicates queue deserialisation.
+- **Fix**: Short-circuit in `Mapper::to()` before registry resolution when the original input (keep it on the instance) is already `instanceof` the target class; ObjectDataMapper's nested branches then inherit the fix since they recurse through `map()`.
+
+## Queue serialisation support not yet designed for v4
+- **Where**: no current file — v3 had `DataTransferObject::__serialize()/__unserialize()` (collapse Models to route keys, collections to CSV, rebuild via mapper)
+- **What**: v4 has no serialisation story; native `serialize()` on a mapped DTO embeds full Model rows (the problem `SerializesModels` exists to avoid on queues).
+- **Fix**: Opt-in `Concerns\SerializesMapping` trait providing `__serialize()` (public props → scalars: Model→`getKey()`/route key, Collection of models→key CSV, enum→value, Carbon→ISO string, nested DTO→recurse) and `__unserialize()` (re-run `map($data)->to(static::class)` and copy properties). Depends on the instance-passthrough fix above only for edge cases; the scalar path already works.
+
 ## Dead statement in Mapper::extractProperties
 - **Where**: `src/Mapper.php` (`extractProperties()`)
 - **What**: `$property->isReadOnly();` return value is discarded — a no-op line, likely leftover from an abandoned readonly-handling idea.

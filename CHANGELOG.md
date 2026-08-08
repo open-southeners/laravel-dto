@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Mapping an array into an explicitly `Collection`-typed target (including plain `Collection` DTO properties without docblock generics) no longer returns a plain array — the explicit target now takes precedence over the `map_arrays_through` inference
 - Mapping a value no mapper can handle now throws `NoMapperFoundException` (with the input type and target class in the message) instead of silently returning the input unmapped
 - Date mapping to `Carbon`/`CarbonImmutable` no longer competes against unrelated mappers due to contradictory internal assertions
 
