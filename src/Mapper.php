@@ -17,6 +17,12 @@ final class Mapper
 
     protected mixed $data;
 
+    /**
+     * The raw input as given to map(), kept untouched by takeDataFrom()'s
+     * destructuring so instance passthrough in to() can compare against it.
+     */
+    protected readonly mixed $originalData;
+
     protected ?string $dataClass = null;
 
     protected ?string $throughClass = null;
@@ -29,6 +35,8 @@ final class Mapper
 
     public function __construct(mixed $input)
     {
+        $this->originalData = $input;
+
         if (is_object($input)) {
             $this->dataClass = get_class($input);
         }
@@ -42,7 +50,6 @@ final class Mapper
         $extraction = [];
 
         foreach ($reflector->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            $property->isReadOnly();
             $extraction[$property->getName()] = $property->getValue($input);
         }
 
@@ -104,33 +111,53 @@ final class Mapper
     {
         $output ??= $this->dataClass;
 
-        // Through-class inference is a default for bare array/Collection input;
-        // it must never contradict an explicitly Collection-typed target.
-        if (
-            ! $this->throughClass
-            && (is_array($this->data) || $this->data instanceof Collection)
-            && ($output === null || ! is_a($output, Collection::class, true))
-        ) {
-            $this->throughClass = is_array($this->data)
-                ? (app('config')->get('data-mapper.map_arrays_through') ?? 'array')
-                : Collection::class;
+        // Instance passthrough: an input already an instance of the resolved
+        // target wins over re-mapping it (v3 semantics), so hand it back as-is
+        // instead of going through registry resolution. This also sidesteps
+        // takeDataFrom()'s destructuring of generic objects (enums, Carbon,
+        // plain DTOs) into arrays, which would otherwise corrupt an
+        // already-correct value before any mapper gets to run. Collection
+        // targets are excluded on purpose: `map($collection)->to(Collection::class)`
+        // keeps going through the normal through/collect resolution below,
+        // which is expected to hand back a fresh Collection rather than the
+        // same instance.
+        //
+        // No MappingResolved event is dispatched for a passthrough: no mapper
+        // actually resolved anything, the value is simply handed back unchanged.
+        $isPassthrough = $output !== null
+            && is_object($this->originalData)
+            && $this->originalData instanceof $output
+            && ! is_a($output, Collection::class, true);
+
+        if (! $isPassthrough) {
+            // Through-class inference is a default for bare array/Collection input;
+            // it must never contradict an explicitly Collection-typed target.
+            if (
+                ! $this->throughClass
+                && (is_array($this->data) || $this->data instanceof Collection)
+                && ($output === null || ! is_a($output, Collection::class, true))
+            ) {
+                $this->throughClass = is_array($this->data)
+                    ? (app('config')->get('data-mapper.map_arrays_through') ?? 'array')
+                    : Collection::class;
+            }
+
+            $mappingValue = new MappingValue(
+                data: $this->data,
+                objectClass: $output,
+                collectClass: $this->throughClass,
+                property: $this->property,
+                path: $this->path,
+                providedKeys: $this->providedKeys,
+            );
+
+            $mapper = app(MapperRegistry::class)->resolveFor($mappingValue);
+
+            if (! $mapper) {
+                throw NoMapperFoundException::forValue($mappingValue);
+            }
         }
 
-        $mappingValue = new MappingValue(
-            data: $this->data,
-            objectClass: $output,
-            collectClass: $this->throughClass,
-            property: $this->property,
-            path: $this->path,
-            providedKeys: $this->providedKeys,
-        );
-
-        $mapper = app(MapperRegistry::class)->resolveFor($mappingValue);
-
-        if (! $mapper) {
-            throw NoMapperFoundException::forValue($mappingValue);
-        }
-
-        return $mapper($mappingValue);
+        return $isPassthrough ? $this->originalData : $mapper($mappingValue);
     }
 }
