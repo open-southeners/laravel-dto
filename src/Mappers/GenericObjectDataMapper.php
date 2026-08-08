@@ -9,7 +9,7 @@ use stdClass;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 
-final class GenericObjectDataMapper extends DataMapper
+class GenericObjectDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {

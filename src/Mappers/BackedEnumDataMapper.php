@@ -6,7 +6,7 @@ use BackedEnum;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 
-final class BackedEnumDataMapper extends DataMapper
+class BackedEnumDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {

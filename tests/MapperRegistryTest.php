@@ -6,10 +6,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
 use OpenSoutheners\LaravelDataMapper\Events\MappingResolved;
 use OpenSoutheners\LaravelDataMapper\Exceptions\NoMapperFoundException;
+use OpenSoutheners\LaravelDataMapper\MapperRegistry;
 use OpenSoutheners\LaravelDataMapper\Mappers\BackedEnumDataMapper;
 use OpenSoutheners\LaravelDataMapper\Mappers\DataMapper;
 use OpenSoutheners\LaravelDataMapper\Mappers\ModelDataMapper;
-use OpenSoutheners\LaravelDataMapper\MapperRegistry;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use Workbench\App\DataObjects\CreateUserData;
 use Workbench\App\Enums\PostStatus;
@@ -91,6 +91,30 @@ class MapperRegistryTest extends TestCase
             MappingResolved::class,
             fn (MappingResolved $event) => $event->mapperClass === BackedEnumDataMapper::class
         );
+    }
+
+    public function test_subclass_of_built_in_mapper_registered_with_higher_priority_wins()
+    {
+        app(MapperRegistry::class)->register(UppercasingBackedEnumSubclassFixtureMapper::class, 200);
+
+        $result = map('hidden')->to(PostStatus::class);
+
+        $this->assertSame('HIDDEN-SUBCLASS', $result);
+    }
+}
+
+/**
+ * Extends the built-in `BackedEnumDataMapper` (rather than implementing
+ * `DataMapper` from scratch) to prove built-in mappers are no longer `final`
+ * and can be overridden by subclasses registered at a higher priority.
+ */
+final class UppercasingBackedEnumSubclassFixtureMapper extends BackedEnumDataMapper
+{
+    public function resolve(MappingValue $mappingValue): mixed
+    {
+        $result = parent::resolve($mappingValue);
+
+        return $result instanceof \BackedEnum ? strtoupper($result->value).'-SUBCLASS' : $result;
     }
 }
 

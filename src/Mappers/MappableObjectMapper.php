@@ -5,7 +5,7 @@ namespace OpenSoutheners\LaravelDataMapper\Mappers;
 use OpenSoutheners\LaravelDataMapper\Contracts\MappableObject;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 
-final class MappableObjectMapper extends DataMapper
+class MappableObjectMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {

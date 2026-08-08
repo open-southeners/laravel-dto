@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 
-final class CarbonDataMapper extends DataMapper
+class CarbonDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {
@@ -23,7 +23,7 @@ final class CarbonDataMapper extends DataMapper
             : $this->resolveCarbon($mappingValue->data, $mappingValue->objectClass);
     }
 
-    private function resolveCarbon($value, string $objectClass): CarbonInterface
+    protected function resolveCarbon($value, string $objectClass): CarbonInterface
     {
         $carbonObject = match (true) {
             gettype($value) === 'integer' || is_numeric($value) => Carbon::createFromTimestamp($value),

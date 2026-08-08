@@ -11,7 +11,7 @@ use OpenSoutheners\LaravelDataMapper\MappingValue;
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 use function OpenSoutheners\LaravelDataMapper\map;
 
-final class CollectionDataMapper extends DataMapper
+class CollectionDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {
@@ -56,12 +56,25 @@ final class CollectionDataMapper extends DataMapper
             default => Collection::make($mappingValue->data),
         };
 
+        // Falsy items (including `null`) are dropped rather than mapped: there is
+        // no sensible target instance for an empty slot, and callers filtering
+        // "holes" out of a payload (e.g. `[1, null, 2]`) expect them gone rather
+        // than surfaced as an error.
         $collection = $collection->filter();
 
         if ($mappingValue->objectClass && $mappingValue->objectClass !== Collection::class) {
-            $collection = map($collection)
-                ->withContext($mappingValue->property, $mappingValue->path)
-                ->to($mappingValue->objectClass);
+            // Each item is mapped on its own through `map()->to()` instead of
+            // re-dispatching the whole wrapped collection to a single mapper
+            // call. This lets item targets that only understand one value at a
+            // time (DTOs/POPOs via ObjectDataMapper) participate, and lets items
+            // that are already instances of the target short-circuit via
+            // instance passthrough instead of being destructured and
+            // re-hydrated.
+            $collection = $collection->map(
+                fn ($item, $key) => map($item)
+                    ->withContext($mappingValue->property, $mappingValue->path !== null ? $mappingValue->path.'.'.$key : null)
+                    ->to($mappingValue->objectClass)
+            );
         }
 
         return $mappingValue->collectClass === 'array'

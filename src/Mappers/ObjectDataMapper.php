@@ -23,7 +23,7 @@ use Symfony\Component\TypeInfo\Type;
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 use function OpenSoutheners\LaravelDataMapper\map;
 
-final class ObjectDataMapper extends DataMapper
+class ObjectDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {
@@ -89,6 +89,20 @@ final class ObjectDataMapper extends DataMapper
 
             if ($type instanceof Type\CollectionType) {
                 $collectionValueType = $type->getCollectionValueType();
+
+                // A plain `array`/`?array` (or `Collection`) property with no
+                // docblock generic resolves its value type as unresolved
+                // `mixed`, which isn't a mappable target. Mapping every item
+                // to it would throw, so the raw value is kept as-is instead,
+                // still wrapped into the declared collection type (e.g. a
+                // `Collection`-typed property still gets a `Collection`).
+                if ((string) $collectionValueType === 'mixed') {
+                    $data[$key] = is_a((string) $unwrappedType, Collection::class, true) && (is_array($value) || $value instanceof Collection)
+                        ? Collection::make($value)
+                        : $value;
+
+                    continue;
+                }
 
                 $data[$key] = map($value)
                     ->withContext($property, $path)

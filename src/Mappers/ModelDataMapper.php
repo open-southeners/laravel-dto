@@ -14,12 +14,17 @@ use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 use function OpenSoutheners\LaravelDataMapper\map;
 
-final class ModelDataMapper extends DataMapper
+class ModelDataMapper extends DataMapper
 {
     public function supports(MappingValue $mappingValue): bool
     {
         return is_a($mappingValue->objectClass, Model::class, true)
-            && (is_array($mappingValue->data) || is_string($mappingValue->data) || is_int($mappingValue->data));
+            && (
+                is_array($mappingValue->data)
+                || is_string($mappingValue->data)
+                || is_int($mappingValue->data)
+                || $mappingValue->data instanceof Collection
+            );
     }
 
     /**
@@ -51,6 +56,26 @@ final class ModelDataMapper extends DataMapper
         }
 
         $data = $mappingValue->data;
+
+        if ($data instanceof Collection) {
+            /** @var class-string<Model> $modelClass */
+            $modelClass = $mappingValue->objectClass;
+
+            // A collection made up entirely of already-hydrated instances of the
+            // target (e.g. a `Collection<Post>` property fed real `Post` models
+            // instead of ids) is mapped item-by-item so each one short-circuits
+            // via instance passthrough instead of being queried again. A
+            // collection of plain ids/keys instead falls through to the bulk
+            // query below, so a scalar-id list still issues a single `whereIn`
+            // query rather than one `whereKey` query per item.
+            if ($data->isNotEmpty() && $data->every(fn ($item) => $item instanceof $modelClass)) {
+                $resolved = $data->map(fn ($item) => map($item)->to($modelClass));
+
+                return $mappingValue->collectClass === 'array' ? $resolved->all() : $resolved;
+            }
+
+            $data = $data->all();
+        }
 
         if (is_string($data) && str_contains($data, ',')) {
             $data = array_filter(explode(',', $data));
@@ -148,9 +173,9 @@ final class ModelDataMapper extends DataMapper
     /**
      * Get model instance(s) for model class and given IDs.
      *
-     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
-     * @param  string|int|array|\Illuminate\Database\Eloquent\Model  $id
-     * @param  string|\Illuminate\Database\Eloquent\Model  $usingAttribute
+     * @param  class-string<Model>  $model
+     * @param  string|int|array|Model  $id
+     * @param  string|Model  $usingAttribute
      */
     protected function getModelInstance(string $model, mixed $id, mixed $usingAttribute, array $with)
     {
