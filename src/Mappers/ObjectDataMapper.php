@@ -2,16 +2,20 @@
 
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\ContextualAttribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;
+use OpenSoutheners\LaravelDataMapper\Exceptions\UnresolvableContextualAttributeException;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionMethod;
+use ReflectionParameter;
 use ReflectionProperty;
 use stdClass;
 use Symfony\Component\TypeInfo\Type;
@@ -58,7 +62,7 @@ final class ObjectDataMapper extends DataMapper
 
             $type = app(PropertyInfoExtractor::class)->typeInfo($class->getName(), $key);
 
-            /** @var \Illuminate\Support\Collection<\ReflectionAttribute> $propertyAttributes */
+            /** @var Collection<ReflectionAttribute> $propertyAttributes */
             $propertyAttributes = Collection::make($property->getAttributes());
 
             $containerAttribute = $propertyAttributes->filter(
@@ -66,7 +70,7 @@ final class ObjectDataMapper extends DataMapper
             )->first();
 
             if ($containerAttribute) {
-                $data[$key] = app()->resolveFromAttribute($containerAttribute);
+                $data[$key] = $this->resolveContainerAttribute($containerAttribute, $class, $property);
 
                 continue;
             }
@@ -107,6 +111,67 @@ final class ObjectDataMapper extends DataMapper
         }
 
         return new $mappingValue->objectClass(...$data);
+    }
+
+    /**
+     * Cache of whether the installed container's `resolveFromAttribute()` needs
+     * a second `ReflectionParameter` argument (Laravel 13+) or not (11/12).
+     */
+    protected static ?bool $resolveFromAttributeNeedsParameter = null;
+
+    /**
+     * Resolve a container contextual attribute (e.g. `#[Authenticated]`, `#[Inject]`)
+     * into its value, bridging the signature change of
+     * `Container::resolveFromAttribute()` across Laravel versions: 11/12 accept a
+     * single `ReflectionAttribute` argument, 13+ additionally require the
+     * `ReflectionParameter` being resolved.
+     *
+     * @param  ReflectionAttribute<ContextualAttribute>  $containerAttribute
+     * @param  ReflectionClass<object>  $class
+     */
+    protected function resolveContainerAttribute(ReflectionAttribute $containerAttribute, ReflectionClass $class, ReflectionProperty $property): mixed
+    {
+        if (! static::containerResolveFromAttributeNeedsParameter()) {
+            return app()->resolveFromAttribute($containerAttribute);
+        }
+
+        return app()->resolveFromAttribute($containerAttribute, $this->constructorParameterFor($class, $property));
+    }
+
+    /**
+     * Whether the container's `resolveFromAttribute()` method requires a second
+     * `ReflectionParameter` argument on the currently installed Laravel version.
+     *
+     * Detected via reflection (not version sniffing) and cached statically since
+     * the installed framework's signature never changes within a request.
+     */
+    protected static function containerResolveFromAttributeNeedsParameter(): bool
+    {
+        return static::$resolveFromAttributeNeedsParameter ??= (new ReflectionMethod(Container::class, 'resolveFromAttribute'))->getNumberOfParameters() > 1;
+    }
+
+    /**
+     * Find the constructor parameter matching a property carrying a contextual
+     * attribute, needed to satisfy Laravel 13+'s `resolveFromAttribute()` signature.
+     *
+     * Constructor-promoted properties always have one; a plain property with a
+     * same-named constructor parameter is also supported. Anything else can't be
+     * resolved and throws a clear exception instead of the confusing
+     * `ArgumentCountError` this replaces.
+     *
+     * @param  ReflectionClass<object>  $class
+     */
+    protected function constructorParameterFor(ReflectionClass $class, ReflectionProperty $property): ReflectionParameter
+    {
+        $constructor = $class->getConstructor();
+
+        foreach ($constructor?->getParameters() ?? [] as $constructorParameter) {
+            if ($constructorParameter->getName() === $property->getName()) {
+                return $constructorParameter;
+            }
+        }
+
+        throw UnresolvableContextualAttributeException::forProperty($class, $property);
     }
 
     /**
