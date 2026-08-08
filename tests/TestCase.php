@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDataMapper\Tests;
 
+use Illuminate\Foundation\Application;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 
 use function Orchestra\Testbench\workbench_path;
@@ -24,7 +25,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Define environment setup.
      *
-     * @param  \Illuminate\Foundation\Application  $app
+     * @param  Application  $app
      * @return void
      */
     protected function defineEnvironment($app)
@@ -37,6 +38,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'prefix' => '',
         ]);
 
-        $app['config']->set('data-mapper', include_once __DIR__.'/../config/data-mapper.php');
+        // 'data-mapper' config is intentionally NOT set here: the package's
+        // ServiceProvider merges its own defaults via mergeConfigFrom(), so
+        // tests exercise the same unpublished-config path as consuming apps.
     }
 }

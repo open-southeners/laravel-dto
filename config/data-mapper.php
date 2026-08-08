@@ -17,20 +17,4 @@ return [
      */
     'map_arrays_through' => 'array',
 
-    /**
-     * Types generator config, only used as defaults when no options
-     * are passed to the command.
-     */
-    'types_generation' => [
-
-        'output' => null,
-
-        'source' => null,
-
-        'filename' => null,
-
-        'declarations' => false,
-
-    ],
-
 ];

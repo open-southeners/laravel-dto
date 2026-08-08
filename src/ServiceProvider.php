@@ -18,6 +18,8 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/data-mapper.php', 'data-mapper');
+
         $this->app->singleton(MapperRegistry::class, function () {
             $registry = new MapperRegistry;
 
