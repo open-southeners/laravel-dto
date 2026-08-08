@@ -10,7 +10,7 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 class ReproPostDemo
 {
-    /** @param \Illuminate\Support\Collection<int, \Workbench\App\Models\User> $reviewers */
+    /** @param Collection<int, User> $reviewers */
     public function __construct(
         public string $title,
         public ?Collection $reviewers = null,

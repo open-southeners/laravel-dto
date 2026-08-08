@@ -33,7 +33,7 @@ final class ResolveModel
             $usingAttribute = $this->keyFromRouteParam[$typeModel] ?? null;
         }
 
-        /** @var \Illuminate\Http\Request|null $request */
+        /** @var Request|null $request */
         $request = app(Request::class);
 
         if ($request && $request->route($key) && is_string($request->route($key))) {

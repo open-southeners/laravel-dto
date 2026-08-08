@@ -16,11 +16,11 @@ class CreatePostData implements RouteTransferableObject
     public mixed $authorEmail = 'me@d8vjork.com';
 
     /**
-     * @param  \Illuminate\Support\Collection<\Illuminate\Support\Carbon>|null  $dates
+     * @param  Collection<Carbon>|null  $dates
      */
     public function __construct(
         public string $title,
-        public ?array $tags = null,
+        public ?array $tags,
         public PostStatus $postStatus,
         public ?Post $post = null,
         public array|string|null $country = null,

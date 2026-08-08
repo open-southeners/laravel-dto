@@ -17,7 +17,7 @@ use Workbench\App\Models\User;
 class UpdateTagData implements RouteTransferableObject
 {
     /**
-     * @param  \Illuminate\Support\Collection<\Workbench\App\Models\Post|\Workbench\App\Models\Film>  $taggable
+     * @param  Collection<Post|Film>  $taggable
      */
     public function __construct(
         public Tag $tag,

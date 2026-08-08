@@ -8,7 +8,7 @@ use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\Post;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Workbench\App\Models\Post>
+ * @extends Factory<Post>
  */
 class PostFactory extends Factory
 {

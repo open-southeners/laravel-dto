@@ -3,6 +3,7 @@
 namespace OpenSoutheners\LaravelDataMapper\Attributes;
 
 use Attribute;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Container\ContextualAttribute;
 
@@ -17,7 +18,7 @@ class Inject implements ContextualAttribute
     /**
      * Resolve the currently authenticated user.
      *
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
     public static function resolve(self $attribute, Container $container)
     {

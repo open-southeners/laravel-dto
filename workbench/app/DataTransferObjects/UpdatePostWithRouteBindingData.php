@@ -13,6 +13,7 @@ use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Http\Requests\PostUpdateFormRequest;
 use Workbench\App\Models\Post;
+use Workbench\App\Models\Tag;
 use Workbench\App\Models\User;
 
 #[AsType('UpdatePostFormData')]
@@ -20,7 +21,7 @@ use Workbench\App\Models\User;
 class UpdatePostWithRouteBindingData implements RouteTransferableObject
 {
     /**
-     * @param  \Illuminate\Support\Collection<\Workbench\App\Models\Tag>|null  $tags
+     * @param  Collection<Tag>|null  $tags
      */
     public function __construct(
         #[ModelWith(['tags'])]

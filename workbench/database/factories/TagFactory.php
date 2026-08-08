@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use Workbench\App\Models\Tag;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Workbench\App\Models\Tag>
+ * @extends Factory<Tag>
  */
 class TagFactory extends Factory
 {

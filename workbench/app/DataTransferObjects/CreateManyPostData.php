@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 class CreateManyPostData
 {
     /**
-     * @param  \Illuminate\Support\Collection<\Workbench\App\DataTransferObjects\CreatePostData>  $posts
+     * @param  Collection<CreatePostData>  $posts
      */
     public function __construct(public Collection $posts)
     {

@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use Workbench\App\Models\Film;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Workbench\App\Models\Film>
+ * @extends Factory<Film>
  */
 class FilmFactory extends Factory
 {
