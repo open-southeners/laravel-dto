@@ -6,3 +6,5 @@ phpunit.xml
 coverage
 clover.xml
 .phpunit.cache
+
+.claude
