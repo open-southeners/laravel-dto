@@ -1,28 +1,50 @@
 ---
-description: Data transfer objects that converts to TypeScript types for your own convenience.
+description: Data transfer objects that convert to TypeScript types for your own convenience.
 ---
 
 # TypeScript generator
 
-Typing all the backend can be a tough task, but even synchronizing these types into your frontend layer if you are using a different technology stack (not Livewire).
+{% hint style="warning" %}
+The `dto:typescript` artisan command is gone in v4 — there's no command that scans `app/DataTransferObjects` for you anymore. Generation now goes through the same `map()` pipeline as everything else, one class at a time, so you decide where the output goes.
+{% endhint %}
 
-Therefore we got you cover, you can use the following command to generate types under your resources/js folder (can be configurable):
+`TypeScript` is itself a mappable target: mapping a class name onto it walks that class's constructor properties (or, for an Eloquent model, its database columns; for a backed enum, its cases) and builds the equivalent TypeScript declaration.
 
-```bash
-php artisan dto:typescript
+```php
+use OpenSoutheners\LaravelDataMapper\Support\TypeScript;
+use function OpenSoutheners\LaravelDataMapper\map;
+
+$typeScript = (string) map(CreatePostData::class)->to(TypeScript::class);
 ```
 
-This command will take all DTO classes from your app/DataTransferObjects folder and convert them into TypeScript types.
+`$typeScript` is a string like:
+
+```typescript
+export type CreatePostData = {
+  title: string,
+  content: string,
+  tags: Array<unknown>,
+};
+```
+
+Nested DTOs, enums and models referenced by a property are expanded into their own `export` alongside it. Write the result to a file yourself, e.g. under `resources/js`:
+
+```php
+file_put_contents(
+    resource_path('js/types/post.ts'),
+    (string) map(CreatePostData::class)->to(TypeScript::class)
+);
+```
 
 ## Customise exported type names
 
-Let say you have a `FilmCreateData` DTO and you want to change the exported name from TypeScript generated types file, you just need to add the `AsType` PHP attribute:
+Add the `AsType` attribute to change the exported name for a class:
 
 ```php
-use OpenSoutheners\LaravelDto\Attributes\AsType;
-​
+use OpenSoutheners\LaravelDataMapper\Attributes\AsType;
+
 #[AsType('FilmCreationForm')]
-final class FilmCreateData extends DataTransferObject
+final class FilmCreateData
 {
     // ...
 }

@@ -1,46 +1,52 @@
 ---
 description: >-
-  Data transfer objects are useful to pass data, they can be used everywhere but
-  has some special uses in multiple places like controllers (including their
-  route bindings) and queued jobs.
+  Data transfer objects are useful to pass data, they can be used everywhere
+  but have some special uses in multiple places like controllers (including
+  their route bindings) and queued jobs.
 ---
 
 # Usage
 
 ## Usage as standalone
 
-{% hint style="warning" %}
-Remember that using the constructor like `new CreatePostData` is also a valid option but it will not map all the data.
-{% endhint %}
-
-You can use DTOs on every place you want as the following:
+You can map onto a DTO anywhere with `map()`:
 
 ```php
-$data = CreatePostData::fromArray([
+use function OpenSoutheners\LaravelDataMapper\map;
+
+$data = map([
     'title' => 'Hello world',
     'content' => 'hello world',
-    'tags' => '1,3'
-]);
+    'tags' => '1,3',
+])->to(CreatePostData::class);
+```
+
+Mapping a bare array or `Collection` input into a collection target (rather than inferring it from `map_arrays_through`, see [Creating DTOs](creating-dtos.md#whether-array-input-becomes-an-array-or-a-collection)) uses `->through()`:
+
+```php
+use Illuminate\Support\Collection;
+
+map($request->input('tags'))->through(Collection::class)->to(Tag::class);
 ```
 
 ## Usage in controllers
 
-Now at the controller level you may do something like the following:
+Implement the `RouteTransferableObject` marker interface on a DTO to auto-map it from the current request — including route parameters — when it's type-hinted in a controller method:
 
 ```php
-// PostController.php
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 
-public function store(CreatePostFormRequest $request)
+final class CreatePostData implements RouteTransferableObject
 {
-    $post = $this->repository->create(
-        CreatePostData::fromRequest($request)
-    );
-    
-    // Response here...
+    public function __construct(
+        public string $title,
+        public string $content,
+        public array $tags = [],
+    ) {
+        //
+    }
 }
 ```
-
-This can be also be shorter by injecting directly the DTO like the following:
 
 ```php
 // PostController.php
@@ -48,73 +54,69 @@ This can be also be shorter by injecting directly the DTO like the following:
 public function store(CreatePostData $data)
 {
     $post = $this->repository->create($data);
-    
+
     // Response here...
 }
 ```
 
-But then you might also think that your data must be validated, then you should read the following section.
+You can still build one manually from a request or form request when you don't want the automatic controller binding:
+
+```php
+public function store(CreatePostFormRequest $request)
+{
+    $post = $this->repository->create(
+        map($request)->to(CreatePostData::class)
+    );
+}
+```
 
 ### Validating request data
 
-To be able to send a `FormRequest` that will also run validation inside the DTO you may need to create a `ValidatedDataTransferObject`.&#x20;
-
-The best way to do so is by running the following command:
-
-```bash
-php artisan make:dto PostCreateData --request
-```
-
-You can also specify the `FormRequest` class path so it will be injected directly:
-
-{% hint style="info" %}
-This way will try reading validation rules array from the `FormRequest` then add them as properties to the DTO class with their types and, if nullable, adding default value as null.
-{% endhint %}
-
-```bash
-php artisan make:dto PostCreateData --request="App\\Http\\Requests\\PostCreateFormRequest"
-```
-
-This way you will have something like the following:
+Add `#[Validate(SomeFormRequest::class)]` to the DTO class to have the controller binding resolve (and validate through) that `FormRequest` instead of the plain `Request`:
 
 ```php
-<?php
-
-namespace App\DataTransferObjects;
-
-use OpenSoutheners\LaravelDto\DataTransferObject;
-use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use App\Http\Requests\PostCreateFormRequest;
 
-final class PostCreateData extends DataTransferObject implements ValidatedDataTransferObject
+#[Validate(PostCreateFormRequest::class)]
+final class PostCreateData implements RouteTransferableObject
 {
     public function __construct(
-        // You may have some properties here if your FormRequest rules contains anything...
+        public string $title,
+        public string $content,
     ) {
         //
-    }
-    
-    /**
-     * Get form request that this data transfer object is based from.
-     */
-    public static function request(): string
-    {
-        return PostCreateFormRequest::class;
     }
 }
 ```
 
-Now whenever you use this DTO on your controllers sending your `FormRequest` instance or [injecting it directly in your controller methods](usage.md#usage-in-controllers) will run validation on the data provided.
+Laravel validates the `FormRequest` as usual when the container resolves it, before its data ever reaches the mapper — so an invalid request never reaches your controller method.
 
 ## Usage in queued jobs
 
-The usage on queued jobs is automatically performed by the package itself, it will serialise and deserialise all the data from the DTO when the queued job enters to the queues processor.
+Serialisation for the queue isn't automatic in v4 — add `SerializesMapping` (see [Creating DTOs](creating-dtos.md#serialising-dtos-for-queued-jobs)) to any DTO you plan to pass into a queued job:
 
-Just adding an example to clarify its usage, having the following queued job:
+```php
+use OpenSoutheners\LaravelDataMapper\Concerns\SerializesMapping;
+
+final class PostCreateData
+{
+    use SerializesMapping;
+
+    public function __construct(
+        public string $title,
+        public string $content,
+        public ?Post $post,
+    ) {
+        //
+    }
+}
+```
 
 ```php
 <?php
- 
+
 namespace App\Jobs;
 
 use App\DataTransferObjects\PostCreateData;
@@ -122,44 +124,64 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
- 
+
 class ProcessPostCreation implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(protected PostCreateData $data)
     {
         //
     }
- 
-    /**
-     * Execute the job.
-     */
+
     public function handle(): void
     {
-        $this->data->post; // This will get the post model instance
-    }    
+        $this->data->post; // Re-queried by primary key when the job runs
+    }
 }
 ```
 
-Then sending this job to the queue with the data transfer object already created using `fromArray` or `fromRequest` methods or via controller binding:
+```php
+dispatch(new ProcessPostCreation(
+    map($request)->to(PostCreateData::class)
+));
+```
+
+A DTO without `SerializesMapping` still queues fine as long as PHP's own serialisation can handle its properties — the trait exists specifically to avoid embedding full Eloquent attribute data (or re-serialising anything non-trivial) in the queue payload.
+
+## Registering custom mappers
+
+Mapping is resolved by a `MapperRegistry` container singleton: the first registered mapper (highest priority first, ties by registration order) whose `supports()` check passes handles the value. Register your own to override or extend built-in behaviour without touching package code:
 
 ```php
-// Somewhere in your application...
-use App\DataTransferObjects\PostCreateData;
-use App\Jobs\ProcessPostCreation;
+use OpenSoutheners\LaravelDataMapper\MapperRegistry;
+use OpenSoutheners\LaravelDataMapper\Mappers\DataMapper;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
-dispatch(
-    new ProcessPostCreation(
-        PostCreateData::fromArray([
-            'title' => 'Hello World',
-            'content' => 'Lorem ipsum...',
-            'tags' => '1,5,8',
-        ])
-    )
-);
+class MoneyStringMapper extends DataMapper
+{
+    public function supports(MappingValue $mappingValue): bool
+    {
+        return $mappingValue->objectClass === Money::class && is_string($mappingValue->data);
+    }
+
+    public function resolve(MappingValue $mappingValue): mixed
+    {
+        [$amount, $currency] = explode(' ', $mappingValue->data);
+
+        return new Money((int) round($amount * 100), $currency);
+    }
+}
 ```
+
+```php
+app(MapperRegistry::class)->register(MoneyStringMapper::class, priority: 100);
+```
+
+All built-in mappers are open to extension (none are `final`), so a subclass registered at a higher priority can override or extend one instead of reimplementing it from scratch. If your class implements `MappableObject` directly (see [Creating DTOs](creating-dtos.md#custom-mapping-logic)) you don't need a separate registered mapper at all — the built-in `MappableObjectMapper` (priority 100) picks it up automatically.
+
+### Events and exceptions
+
+`OpenSoutheners\LaravelDataMapper\Events\MappingResolved` dispatches on every successful mapping resolution, carrying the winning mapper class and the `MappingValue` — useful for logging or debugging which mapper handled a given value. It doesn't fire for instance passthrough, since no mapper actually ran.
+
+`OpenSoutheners\LaravelDataMapper\Exceptions\NoMapperFoundException` is thrown when nothing in the registry supports a given input/target combination — the message includes the input type, the target class, and, for a nested property, its dot-notation path (e.g. `tags.2`).
