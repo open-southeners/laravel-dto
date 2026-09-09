@@ -3,38 +3,37 @@
 namespace Workbench\App\DataTransferObjects;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Attributes\AsType;
-use OpenSoutheners\LaravelDto\Attributes\BindModel;
-use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
-use OpenSoutheners\LaravelDto\DataTransferObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\AsType;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\ModelWith;
+use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Http\Requests\PostUpdateFormRequest;
 use Workbench\App\Models\Post;
+use Workbench\App\Models\Tag;
+use Workbench\App\Models\User;
 
 #[AsType('UpdatePostFormData')]
-class UpdatePostWithRouteBindingData extends DataTransferObject implements ValidatedDataTransferObject
+#[Validate(PostUpdateFormRequest::class)]
+class UpdatePostWithRouteBindingData implements RouteTransferableObject
 {
     /**
-     * @param  \Illuminate\Support\Collection<\Workbench\App\Models\Tag>|null  $tags
+     * @param  Collection<Tag>|null  $tags
      */
     public function __construct(
-        #[BindModel(with: 'tags')]
+        #[ModelWith(['tags'])]
         public Post $post,
         public ?string $title = null,
         public ?stdClass $content = null,
         public ?PostStatus $postStatus = null,
         public ?Collection $tags = null,
         public ?CarbonImmutable $publishedAt = null,
-        public ?Authenticatable $currentUser = null
+        #[Authenticated]
+        public ?User $currentUser = null
     ) {
         //
-    }
-
-    public static function request(): string
-    {
-        return PostUpdateFormRequest::class;
     }
 }

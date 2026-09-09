@@ -8,4 +8,15 @@ parameters:
 
     level: "max"
 
-    checkMissingIterableValueType: false
+    ignoreErrors:
+        -
+            # The Laravel 11/12 branch of the version-bridge in
+            # ObjectDataMapper::resolveContainerAttribute() calls
+            # resolveFromAttribute() with a single argument on purpose - PHPStan
+            # analyses against the installed framework version (13+, which
+            # requires the second ReflectionParameter argument), so it always
+            # flags this call regardless of which Laravel major is installed.
+            identifier: arguments.count
+            path: src/Mappers/ObjectDataMapper.php
+            count: 1
+

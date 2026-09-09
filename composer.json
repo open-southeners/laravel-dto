@@ -1,6 +1,6 @@
 {
-    "name": "open-southeners/laravel-dto",
-    "description": "Integrate data transfer objects into Laravel, the easiest way",
+    "name": "open-southeners/laravel-data-mapper",
+    "description": "Extensible data mapper to objects, DTOs, enums, collections, Eloquent models, etc",
     "license": "MIT",
     "keywords": [
         "open-southeners",
@@ -8,6 +8,8 @@
         "laravel-package",
         "data",
         "data-transfer-objects",
+        "data-mapper",
+        "object-mapper",
         "requests",
         "http"
     ],
@@ -30,10 +32,11 @@
         "illuminate/support": "^11.0 || ^12.0 || ^13.0",
         "open-southeners/extended-laravel": "~0.8",
         "phpdocumentor/reflection-docblock": "^5.3",
-        "symfony/property-info": "^6.0 || ^7.0"
+        "symfony/property-info": "^7.3 || ^8.0"
     },
     "require-dev": {
         "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.22",
         "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^11.0"
@@ -42,12 +45,15 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "OpenSoutheners\\LaravelDto\\": "src"
-        }
+            "OpenSoutheners\\LaravelDataMapper\\": "src"
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenSoutheners\\LaravelDto\\Tests\\": "tests",
+            "OpenSoutheners\\LaravelDataMapper\\Tests\\": "tests",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -59,7 +65,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "OpenSoutheners\\LaravelDto\\ServiceProvider"
+                "OpenSoutheners\\LaravelDataMapper\\ServiceProvider"
             ]
         }
     },

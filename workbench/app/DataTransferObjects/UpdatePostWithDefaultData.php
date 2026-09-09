@@ -2,24 +2,22 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use Illuminate\Contracts\Auth\Authenticatable;
-use OpenSoutheners\LaravelDto\Attributes\BindModel;
-use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
-use OpenSoutheners\LaravelDto\DataTransferObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use Workbench\App\Models\Post;
 use Workbench\App\Models\Tag;
 use Workbench\App\Models\User;
 
-class UpdatePostWithDefaultData extends DataTransferObject
+class UpdatePostWithDefaultData implements RouteTransferableObject
 {
     /**
      * @param  string[]  $tags
      */
     public function __construct(
-        #[BindModel('slug')]
-        #[WithDefaultValue('hello-world')]
+        #[ResolveModel('slug')]
         public Post $post,
-        #[WithDefaultValue(Authenticatable::class)]
+        #[Authenticated]
         public User $author,
         public Post|Tag|null $parent = null,
         public array|string|null $country = null,

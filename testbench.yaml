@@ -1,21 +1,21 @@
 providers:
-  - OpenSoutheners\LaravelDto\ServiceProvider
-  - Workbench\App\Providers\WorkbenchServiceProvider
+    - OpenSoutheners\LaravelDataMapper\ServiceProvider
+    - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
-  - workbench/database/migrations
+    - workbench/database/migrations
 
 # seeders:
 #   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: "/"
-  install: true
-  discovers:
-    web: true
-    api: true
-    commands: true
-    views: false
-  build: []
-  assets: []
-  sync: []
+    start: "/"
+    install: true
+    discovers:
+        web: true
+        api: true
+        commands: true
+        views: false
+    build: []
+    assets: []
+    sync: []

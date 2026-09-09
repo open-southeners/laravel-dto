@@ -2,10 +2,7 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\DataTransferObject;
-
-class CreateComment extends DataTransferObject
+class CreateComment
 {
     public function __construct(
         public string $content,
