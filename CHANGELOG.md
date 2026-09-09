@@ -62,6 +62,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Attribute `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` (when using with `Illuminate\Contracts\Auth\Authenticatable` can be replaced by `OpenSoutheners\LaravelDto\Attributes\Authenticated`)
 - Artisan commands: `make:dto`, `dto:typescript`
 
+## [3.8.0] - 2026-04-13
+
+### Added
+
+- Laravel 13 support
+
 ## [3.7.0] - 2025-03-04
 
 ### Added
